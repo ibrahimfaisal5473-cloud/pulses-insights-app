@@ -2,7 +2,7 @@
 
 Per the Phase 2 assignment requirements, this file logs the prompts used with AI assistants (Claude, ChatGPT) to write, debug, or structure the code in this repository.
 
----
+
 
 ## 2026-07-15 — Architecture design
 
@@ -11,7 +11,7 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 
 **Outcome:** Produced a full architecture proposal (folder structure, `(auth)`/`(dashboard)` route groups, component tiers, TanStack Query + URL-based filter state, mock cookie auth with `proxy.ts` + DAL, `app/api/v1/*` mock backend mirroring the Pulses API, seeded mock data, per-widget chart fetching, shared `types/`, and utility/service layers) with reasoning for each. No code written.
 
----
+
 
 ## 2026-07-15 — Architecture agreement + per-widget fetching
 
@@ -20,7 +20,7 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 
 **Outcome:** Locked in the stack and the three recommended choices (mock cookie session auth, TanStack Query, mock API mirroring the Pulses endpoints). Adopted the hard rule that every widget owns its data (one endpoint + one hook per widget, independent loading/error states). Confirmed strictly incremental, milestone-by-milestone workflow with review before continuing.
 
----
+
 
 ## 2026-07-16 — Project foundation
 
@@ -37,7 +37,7 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 
 **Outcome:** Configured the project's foundation by installing and setting up the required dependencies, creating the agreed folder structure, implementing the route groups, dashboard shell, sidebar, top navigation, and placeholder pages. No authentication, API routes, or dashboard functionality was implemented.
 
----
+
 
 ## 2026-07-16 — Authentication (Milestone 2)
 
@@ -56,3 +56,18 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 > Also start pushing everything we're building to the GitHub repository now that development has started.
 
 **Outcome:** Implemented a complete mock authentication system including a login page, login/logout API routes, httpOnly cookie-based session management, protected dashboard routes, authentication redirects, and logout functionality. Verified the authentication flow before committing and pushing the milestone to the GitHub repository.
+
+
+---
+
+## 2026-07-16 — Login page redesign
+
+**Prompt:**
+> Using the attached screenshot of the Emirates Insights login page as a visual reference, redesign the login page while creating an original version for **Pulses Insights**.
+>
+> Do not copy any Emirates branding, logos, text, or assets. Keep the split-screen layout with branding on the left and the login form on the right. Create a unique background pattern, use premium typography, add a short product description, a professional information card below the login form, and a subtle Pulses Insights footer. Maintain the existing authentication functionality and ensure the page is fully responsive.
+>
+> The goal is to capture the same premium enterprise feel without looking like a direct copy of the Emirates Insights login page.
+
+**Outcome:** Redesigned the authentication interface using the provided Emirates Insights login screenshot as a visual reference while creating an original **Pulses Insights** identity. Implemented a premium split-screen layout, custom branding, unique visual elements, responsive design, and an enterprise-style login experience without copying Emirates branding or assets.
+
