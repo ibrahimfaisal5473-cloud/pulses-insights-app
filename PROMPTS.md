@@ -71,3 +71,19 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 
 **Outcome:** Redesigned the authentication interface using the provided Emirates Insights login screenshot as a visual reference while creating an original **Pulses Insights** identity. Implemented a premium split-screen layout, custom branding, unique visual elements, responsive design, and an enterprise-style login experience without copying Emirates branding or assets.
 
+---
+
+## 2026-07-16 — Overview page layout (Milestone 4)
+
+**Prompt:**
+> Now we'll begin building the dashboard itself, starting with the Overview page.
+>
+> Use the approved dashboard prototype as the design reference while keeping the Pulses Insights branding and project structure.
+>
+> For this milestone, build only the UI layout of the Overview page. Create the KPI cards, insight cards, chart containers, distribution cards, and zone ranking section using reusable components.
+>
+> Do not integrate API routes, charts, filters, or mock data yet. Use placeholder content so we can review the layout, spacing, and responsiveness before connecting the backend.
+>
+> When you're finished, summarize what you implemented, explain any component architecture decisions, create a commit, push it to the GitHub repository, and wait for my review.
+
+**Outcome:** Built the initial Overview page structure using reusable components, including placeholder KPI cards, insight cards, chart containers, distribution sections, and zone ranking. Focused on the layout, responsiveness, and component architecture without integrating APIs or real data.
