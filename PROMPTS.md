@@ -4,7 +4,7 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 
 
 
-## 2026-07-15 — Architecture design
+## 2026-07-15 — Architecture design (Milestone 1)
 
 **Prompt:**
 > Step one is architecture. Before writing any code, I want us to design the applications architecture. Based on the Emirates Insights dashboard and the project requirements, propose: the folder structure, the routing structure, the component hierarchy, the state management approach, how authentication should work, how the mock backend should be organized, where mock data should live, how charts should fetch data, shared types/interfaces, and any utilities or services we'll need. Explain the reasoning behind each decision. Don't write implementation code yet — I want to agree on the architecture first so the project has a solid foundation.
