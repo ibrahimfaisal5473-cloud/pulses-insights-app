@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+/** Icon-only sign-out control used in the app shell. */
 export function LogoutButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -20,8 +22,15 @@ export function LogoutButton() {
   }
 
   return (
-    <Button variant="outline" onClick={handleLogout} disabled={loading}>
-      {loading ? "Signing out…" : "Sign out"}
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handleLogout}
+      disabled={loading}
+      aria-label="Sign out"
+      title="Sign out"
+    >
+      <LogOut className="h-4 w-4" />
     </Button>
   );
 }

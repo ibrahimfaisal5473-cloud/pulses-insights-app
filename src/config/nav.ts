@@ -2,8 +2,7 @@
  * Dashboard navigation config.
  *
  * `icon` is a Lucide icon name (resolved to a component in the sidebar layer)
- * so this stays a plain data module. Routes are wired up as their pages are
- * implemented in later milestones.
+ * so this stays a plain data module usable from server and client code.
  */
 export type NavItem = {
   title: string;
@@ -13,8 +12,8 @@ export type NavItem = {
 
 export const dashboardNav: NavItem[] = [
   { title: "Overview", href: "/", icon: "LayoutDashboard" },
-  { title: "Visits & Happiness", href: "/visits", icon: "BarChart3" },
+  { title: "Visitor Analytics", href: "/visitors", icon: "Users" },
   { title: "Zone Analytics", href: "/zones", icon: "Layers" },
-  { title: "Journeys", href: "/journeys", icon: "Route" },
+  { title: "Visitor Journeys", href: "/journeys", icon: "Route" },
   { title: "Dissatisfied Visitors", href: "/dissatisfied", icon: "Frown" },
 ];
