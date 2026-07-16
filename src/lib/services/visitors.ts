@@ -1,7 +1,9 @@
 import {
   AGE_BANDS,
   type AgeDistribution,
+  type AgeHappiness,
   type GenderDistribution,
+  type GenderHappiness,
   type HappinessTimeseriesResponse,
   type HeatmapCell,
   type HeatmapResponse,
@@ -17,6 +19,7 @@ import {
   maleShare,
   newVisitorShare,
   resolveZones,
+  segmentHappinessOffset,
   zoneDayVisitors,
 } from "@/lib/mock/generator";
 import type { ParsedVisitorsQuery } from "./params";
@@ -81,6 +84,37 @@ export function getAgeDistribution(q: ParsedVisitorsQuery): AgeDistribution {
     }
   }
   return result;
+}
+
+/** Site-wide average happiness across the range (baseline for segments). */
+function averageHappiness(q: ParsedVisitorsQuery): number {
+  const zones = resolveZones(q.zoneIds);
+  const days = eachDay(q.start, q.end);
+  return (
+    days.reduce((sum, day) => sum + dayHappiness(day, zones), 0) /
+    (days.length || 1)
+  );
+}
+
+const round1 = (n: number) => Math.round(n * 10) / 10;
+const clampScore = (n: number) => Math.min(97, Math.max(68, n));
+
+export function getGenderHappiness(q: ParsedVisitorsQuery): GenderHappiness {
+  const base = averageHappiness(q);
+  return {
+    male: round1(clampScore(base + segmentHappinessOffset("gender:male"))),
+    female: round1(clampScore(base + segmentHappinessOffset("gender:female"))),
+  };
+}
+
+export function getAgeHappiness(q: ParsedVisitorsQuery): AgeHappiness {
+  const base = averageHappiness(q);
+  return Object.fromEntries(
+    AGE_BANDS.map((band) => [
+      band,
+      round1(clampScore(base + segmentHappinessOffset(`age:${band}`))),
+    ]),
+  ) as AgeHappiness;
 }
 
 export function getVisitorsTimeseries(

@@ -138,6 +138,14 @@ export function dayHappiness(day: string, zones: MockZone[]): number {
   return Math.round(Math.min(97, Math.max(68, 84 + zoneOffset + drift + noise)) * 10) / 10;
 }
 
+/**
+ * Stable happiness offsets per demographic segment, so "Happiness by
+ * Gender/Age" reads consistently rather than reshuffling each request.
+ */
+export function segmentHappinessOffset(segment: string): number {
+  return sample(`seg:${segment}`, -2.6, 2.6);
+}
+
 /* ---------- misc ---------- */
 
 /** Resolve zone ids (empty = all zones); unknown ids are ignored. */

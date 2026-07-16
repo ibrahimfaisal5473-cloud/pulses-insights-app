@@ -4,7 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import type { VisitorsQuery } from "@/types";
 import {
   fetchAgeDistribution,
+  fetchAgeHappiness,
   fetchGenderDistribution,
+  fetchGenderHappiness,
   fetchHappinessTimeseries,
   fetchVisitorCounts,
   fetchVisitorsHeatmap,
@@ -31,10 +33,24 @@ export function useGenderDistribution(q?: VisitorsQuery) {
   });
 }
 
+export function useGenderHappiness(q?: VisitorsQuery) {
+  return useQuery({
+    queryKey: ["gender-happiness", q ?? null],
+    queryFn: () => fetchGenderHappiness(q),
+  });
+}
+
 export function useAgeDistribution(q?: VisitorsQuery) {
   return useQuery({
     queryKey: ["age-distribution", q ?? null],
     queryFn: () => fetchAgeDistribution(q),
+  });
+}
+
+export function useAgeHappiness(q?: VisitorsQuery) {
+  return useQuery({
+    queryKey: ["age-happiness", q ?? null],
+    queryFn: () => fetchAgeHappiness(q),
   });
 }
 

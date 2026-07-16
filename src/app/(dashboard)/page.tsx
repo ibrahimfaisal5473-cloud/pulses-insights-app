@@ -1,17 +1,22 @@
 import { PageHeader } from "@/components/dashboard/page-header";
 import { LensProvider, LensSwitch } from "@/components/dashboard/lens";
-import { VisitorKpis } from "@/components/dashboard/widgets/visitor-kpis";
-import { MoodKpi } from "@/components/dashboard/widgets/mood-kpi";
-import { FeaturedTrend } from "@/components/dashboard/widgets/featured-trend";
-import { OccupancyHeatmap } from "@/components/dashboard/widgets/occupancy-heatmap";
+import { UniquePeople } from "@/components/dashboard/widgets/unique-people";
+import { Footfall } from "@/components/dashboard/widgets/footfall";
+import { VisitorMood } from "@/components/dashboard/widgets/visitor-mood";
+import { InsightCards } from "@/components/dashboard/widgets/insight-cards";
+import { HappinessTrend } from "@/components/dashboard/widgets/happiness-trend";
 import { GenderDistribution } from "@/components/dashboard/widgets/gender-distribution";
 import { AgeDistribution } from "@/components/dashboard/widgets/age-distribution";
+import { ZoneRanking } from "@/components/dashboard/widgets/zone-ranking";
 
 /**
- * Overview — every widget fetches independently from its own endpoint
- * (loading/error states are per-widget, so one slow endpoint never blocks
- * the rest of the page). The lens row at the top switches the featured
- * chart between footfall and sentiment.
+ * Overview — mirrors the Insights reference layout: headline stats, generated
+ * insight callouts, happiness over time, demographic splits, and the zone
+ * ranking. Every widget fetches independently from its own endpoint, so one
+ * slow or failing endpoint never blocks the rest of the page.
+ *
+ * The lens row swaps the demographic splits and the zone ranking between
+ * footfall and sentiment.
  */
 export default function OverviewPage() {
   return (
@@ -24,24 +29,24 @@ export default function OverviewPage() {
 
         <LensSwitch />
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          <VisitorKpis />
-          <MoodKpi />
+        <section className="grid gap-4 lg:grid-cols-[1.5fr_1fr_0.9fr]">
+          <UniquePeople />
+          <Footfall />
+          <VisitorMood />
         </section>
 
         <section className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <FeaturedTrend />
-          </div>
+          <InsightCards />
+        </section>
+
+        <HappinessTrend />
+
+        <section className="grid gap-4 lg:grid-cols-2">
           <GenderDistribution />
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <OccupancyHeatmap />
-          </div>
           <AgeDistribution />
         </section>
+
+        <ZoneRanking />
       </div>
     </LensProvider>
   );

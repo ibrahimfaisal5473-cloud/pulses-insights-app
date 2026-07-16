@@ -25,6 +25,8 @@ export type Zone = {
   name: string;
   totalVisitors: number;
   percentOfTotal: number;
+  /** Average happiness index (0–100) for this zone over the range. */
+  happiness: number;
 };
 
 export type ZonesResponse = {
@@ -46,6 +48,12 @@ export type GenderDistribution = {
   female: number;
 };
 
+/** Average happiness index (0–100) per gender. */
+export type GenderHappiness = {
+  male: number;
+  female: number;
+};
+
 export const AGE_BANDS = [
   "0-14",
   "15-24",
@@ -58,6 +66,9 @@ export const AGE_BANDS = [
 export type AgeBand = (typeof AGE_BANDS)[number];
 
 export type AgeDistribution = Record<AgeBand, number>;
+
+/** Average happiness index (0–100) per age band. */
+export type AgeHappiness = Record<AgeBand, number>;
 
 /* ---------- Time series ---------- */
 
