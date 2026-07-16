@@ -89,10 +89,10 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 **Outcome:** Built the initial Overview page structure using reusable components, including placeholder KPI cards, insight cards, chart containers, distribution sections, and zone ranking. Focused on the layout, responsiveness, and component architecture without integrating APIs or real data.
 
 
-## 2026-07-16 — Mock backend + Overview dashboard
+## 2026-07-16 — Mock backend + Overview dashboard (Milestone 4)
 
 **Prompt:**
-> Now we'll move on to Milestone 4.
+> Now we'll move on to the backend.
 >
 > Create the mock backend using Next.js API routes. Do not use a real database.
 >
