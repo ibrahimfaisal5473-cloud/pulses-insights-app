@@ -73,7 +73,7 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 
 ---
 
-## 2026-07-16 — Overview page layout (Milestone 4)
+## 2026-07-16 — Overview page layout (Milestone 3)
 
 **Prompt:**
 > Now we'll begin building the dashboard itself, starting with the Overview page.
