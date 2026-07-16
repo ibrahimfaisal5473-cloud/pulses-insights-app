@@ -52,11 +52,9 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 > If the user is already logged in, redirect them away from `/login`.
 >
 > Wait for my review after this and do not continue to the charts or overview.
->
-> Also start pushing everything we're building to the GitHub repository now that development has started.
 
-**Outcome:** Implemented a complete mock authentication system including a login page, login/logout API routes, httpOnly cookie-based session management, protected dashboard routes, authentication redirects, and logout functionality. Verified the authentication flow before committing and pushing the milestone to the GitHub repository.
 
+**Outcome:** Implemented a complete mock authentication system including a login page, login/logout API routes, httpOnly cookie-based session management, protected dashboard routes, authentication redirects, and logout functionality. 
 
 ---
 
@@ -84,7 +82,7 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 >
 > Do not integrate API routes, charts, filters, or mock data yet. Use placeholder content so we can review the layout, spacing, and responsiveness before connecting the backend.
 >
-> When you're finished, summarize what you implemented, explain any component architecture decisions, create a commit, push it to the GitHub repository, and wait for my review.
+> When you're finished, summarize what you implemented, explain any component architecture decisions,push it to the GitHub repository, and wait for my review.
 
 **Outcome:** Built the initial Overview page structure using reusable components, including placeholder KPI cards, insight cards, chart containers, distribution sections, and zone ranking. Focused on the layout, responsiveness, and component architecture without integrating APIs or real data.
 
@@ -100,6 +98,6 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 >
 > Then build the Overview dashboard page. Implement KPI cards and the first set of charts, including visitor trends, occupancy, and visitor distribution. Add loading and error states while keeping the implementation modular, reusable, and scalable.
 >
-> Follow the architecture we agreed on earlier. When finished, summarize what you implemented, explain any architectural decisions, build and lint the project, commit the changes, push them to the GitHub repository, and then stop and wait for my review.
+> Follow the architecture we agreed on earlier. When finished, summarize what you implemented, explain any architectural decisions, build and lint the project, and then stop and wait for my review.
 
 **Outcome:** Implemented the mock backend using Next.js API routes with realistic analytics data, shared TypeScript interfaces, reusable API layer, and independent data fetching for each dashboard widget. Built the Overview page with KPI cards, visitor trend, occupancy, and visitor distribution charts, along with loading and error states. Verified the project by building and linting successfully before committing and pushing the changes to the repository.
