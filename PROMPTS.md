@@ -78,7 +78,7 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 **Prompt:**
 > Now we'll begin building the dashboard itself, starting with the Overview page.
 >
-> Use the approved dashboard prototype as the design reference while keeping the Pulses Insights branding and project structure.
+> Use the approved Emirates dashboard prototype as the design reference while keeping the Pulses Insights branding and project structure.
 >
 > For this milestone, build only the UI layout of the Overview page. Create the KPI cards, insight cards, chart containers, distribution cards, and zone ranking section using reusable components.
 >
