@@ -18,12 +18,12 @@ export function KpiCard({
     <Card>
       <CardContent className="flex flex-col gap-2.5 pt-1">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600/10 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Icon className="h-4 w-4" />
           </span>
           <span className="text-xs font-medium text-muted-foreground">{label}</span>
         </div>
-        <span className="text-[26px] font-semibold leading-none tracking-tight tabular-nums">
+        <span className="font-heading text-[28px] font-semibold leading-none tracking-tight tabular-nums text-primary">
           {value}
         </span>
         {sub && <span className="text-xs text-muted-foreground">{sub}</span>}

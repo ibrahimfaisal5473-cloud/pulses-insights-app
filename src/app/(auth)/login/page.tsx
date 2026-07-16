@@ -20,8 +20,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BrandMark } from "@/components/layout/brand-mark";
 
-const BRAND = "#0F766E";
-const BRAND_HOVER = "#115E56";
+const BRAND = "#D71921";
+const BRAND_HOVER = "#B4141B";
 
 const FEATURES = [
   { icon: Activity, label: "Live occupancy & footfall" },
@@ -66,52 +66,51 @@ export default function LoginPage() {
       <div className="grid flex-1 lg:grid-cols-[1.05fr_1fr]">
         {/* ---------- Left: brand panel ---------- */}
         <section className="relative hidden overflow-hidden p-12 text-white lg:flex lg:flex-col xl:p-16">
-          {/* layered background pattern (pulse rings + dot grid + glow) */}
+          {/* Emirates-style red ground with a woven diamond lattice */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(125% 125% at 12% 8%, #12514A 0%, #0C3A35 46%, #06231F 100%)",
+                "radial-gradient(120% 120% at 15% 10%, #E4212A 0%, #D71921 45%, #A5121A 100%)",
             }}
           />
           <div
-            className="absolute inset-0 opacity-70"
+            className="absolute inset-0 opacity-60"
             style={{
               backgroundImage:
-                "repeating-radial-gradient(circle at 22% 26%, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.055) 1px, transparent 1px, transparent 44px)",
+                "repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 26px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 1px, transparent 1px, transparent 26px)",
             }}
           />
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 opacity-40"
             style={{
               backgroundImage:
-                "radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)",
-              backgroundSize: "24px 24px",
+                "repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 13px, transparent 13px, transparent 26px)",
             }}
           />
           <div
             className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full blur-3xl"
-            style={{ background: "rgba(20,184,166,0.28)" }}
+            style={{ background: "rgba(255,255,255,0.14)" }}
           />
           <div
             className="pointer-events-none absolute -bottom-32 -left-16 h-96 w-96 rounded-full blur-3xl"
-            style={{ background: "rgba(13,148,136,0.20)" }}
+            style={{ background: "rgba(165,18,26,0.45)" }}
           />
 
           {/* content */}
           <div className="relative flex items-center gap-3">
             <BrandMark size={40} />
-            <span className="text-lg font-semibold tracking-tight">
+            <span className="font-heading text-lg font-semibold tracking-tight">
               Pulses Insights
             </span>
           </div>
 
           <div className="relative mt-auto max-w-md">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-white/80 backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-teal-300" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#E8C57A]" />
               Visitor Intelligence Platform
             </span>
-            <h1 className="mt-6 text-balance text-5xl font-semibold leading-[1.05] tracking-tight">
+            <h1 className="mt-6 font-heading text-balance text-5xl font-semibold leading-[1.05] tracking-tight">
               Intelligence for every visit.
             </h1>
             <p className="mt-5 text-pretty text-base leading-relaxed text-white/70">
@@ -123,7 +122,7 @@ export default function LoginPage() {
               {FEATURES.map(({ icon: Icon, label }) => (
                 <li key={label} className="flex items-center gap-3 text-sm text-white/80">
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5">
-                    <Icon className="h-4 w-4 text-teal-300" />
+                    <Icon className="h-4 w-4 text-[#E8C57A]" />
                   </span>
                   {label}
                 </li>
@@ -142,12 +141,12 @@ export default function LoginPage() {
             {/* mobile brand (left panel hidden on small screens) */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
               <BrandMark size={40} />
-              <span className="text-lg font-semibold tracking-tight">
+              <span className="font-heading text-lg font-semibold tracking-tight">
                 Pulses Insights
               </span>
             </div>
 
-            <h2 className="text-3xl font-semibold tracking-tight">Welcome back</h2>
+            <h2 className="font-heading text-3xl font-semibold tracking-tight">Welcome back</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Sign in to access real-time facility analytics for your spaces.
             </p>

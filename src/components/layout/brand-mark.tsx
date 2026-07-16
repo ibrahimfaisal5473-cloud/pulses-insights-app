@@ -1,8 +1,8 @@
 /**
- * Pulses brand mark — a teal rounded tile with a folded bottom-left corner
- * and a "P" counter, recreated in the Pulses Insights brand colour.
- * Shared by the app shell (sidebar, header) and the login screen; the same
- * artwork backs the favicon at `app/icon.svg`.
+ * Pulses brand mark — rounded tile with a folded bottom-left corner and a "P"
+ * counter, in the Emirates red brand palette. Shared by the app shell
+ * (sidebar, header) and the login screen; the same artwork backs the favicon
+ * at `app/icon.svg`.
  */
 export function BrandMark({ size = 36 }: { size?: number }) {
   return (
@@ -17,9 +17,9 @@ export function BrandMark({ size = 36 }: { size?: number }) {
     >
       <path
         d="M9 2H23A7 7 0 0 1 30 9V23A7 7 0 0 1 23 30H12L2 20V9A7 7 0 0 1 9 2Z"
-        fill="#0F766E"
+        fill="#D71921"
       />
-      <path d="M2 20L12 30H2Z" fill="#0B564F" />
+      <path d="M2 20L12 30H2Z" fill="#A5121A" />
       <path
         fillRule="evenodd"
         clipRule="evenodd"
