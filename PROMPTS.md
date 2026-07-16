@@ -87,3 +87,19 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 > When you're finished, summarize what you implemented, explain any component architecture decisions, create a commit, push it to the GitHub repository, and wait for my review.
 
 **Outcome:** Built the initial Overview page structure using reusable components, including placeholder KPI cards, insight cards, chart containers, distribution sections, and zone ranking. Focused on the layout, responsiveness, and component architecture without integrating APIs or real data.
+
+
+## 2026-07-16 — Mock backend + Overview dashboard
+
+**Prompt:**
+> Now we'll move on to Milestone 4.
+>
+> Create the mock backend using Next.js API routes. Do not use a real database.
+>
+> Generate realistic mock analytics data and create shared TypeScript interfaces. Build a clean API layer so every dashboard widget fetches its own data independently from its own API endpoint.
+>
+> Then build the Overview dashboard page. Implement KPI cards and the first set of charts, including visitor trends, occupancy, and visitor distribution. Add loading and error states while keeping the implementation modular, reusable, and scalable.
+>
+> Follow the architecture we agreed on earlier. When finished, summarize what you implemented, explain any architectural decisions, build and lint the project, commit the changes, push them to the GitHub repository, and then stop and wait for my review.
+
+**Outcome:** Implemented the mock backend using Next.js API routes with realistic analytics data, shared TypeScript interfaces, reusable API layer, and independent data fetching for each dashboard widget. Built the Overview page with KPI cards, visitor trend, occupancy, and visitor distribution charts, along with loading and error states. Verified the project by building and linting successfully before committing and pushing the changes to the repository.
