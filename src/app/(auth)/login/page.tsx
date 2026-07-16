@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { BrandMark } from "@/components/layout/brand-mark";
 
 const BRAND = "#0F766E";
 const BRAND_HOVER = "#115E56";
@@ -27,39 +28,6 @@ const FEATURES = [
   { icon: Route, label: "Zone-to-zone journey analytics" },
   { icon: Smile, label: "Real-time visitor sentiment" },
 ];
-
-function BrandMark({ size = 40 }: { size?: number }) {
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        height: size,
-        width: size,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: size * 0.28,
-        background: `linear-gradient(140deg, ${BRAND}, #14B8A6)`,
-        boxShadow: "0 6px 18px rgba(15,118,110,0.35)",
-      }}
-    >
-      <svg
-        width={size * 0.55}
-        height={size * 0.55}
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden
-      >
-        <path
-          d="M2 12h4l2.5-7 4 15 3-11 2 3h4.5"
-          stroke="white"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </span>
-  );
-}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -132,7 +100,7 @@ export default function LoginPage() {
 
           {/* content */}
           <div className="relative flex items-center gap-3">
-            <BrandMark />
+            <BrandMark size={40} />
             <span className="text-lg font-semibold tracking-tight">
               Pulses Insights
             </span>
@@ -173,7 +141,7 @@ export default function LoginPage() {
           <div className="w-full max-w-sm">
             {/* mobile brand (left panel hidden on small screens) */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
-              <BrandMark />
+              <BrandMark size={40} />
               <span className="text-lg font-semibold tracking-tight">
                 Pulses Insights
               </span>

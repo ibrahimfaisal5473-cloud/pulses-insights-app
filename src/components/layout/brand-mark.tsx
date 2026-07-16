@@ -1,37 +1,31 @@
 /**
- * Pulses Insights brand mark — teal gradient tile with a pulse waveform.
- * Shared by the app shell (sidebar, mobile header).
+ * Pulses brand mark — a teal rounded tile with a folded bottom-left corner
+ * and a "P" counter, recreated in the Pulses Insights brand colour.
+ * Shared by the app shell (sidebar, header) and the login screen; the same
+ * artwork backs the favicon at `app/icon.svg`.
  */
 export function BrandMark({ size = 36 }: { size?: number }) {
   return (
-    <span
-      aria-hidden
-      style={{
-        display: "inline-flex",
-        height: size,
-        width: size,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: size * 0.28,
-        background: "linear-gradient(140deg, #0F766E, #14B8A6)",
-        boxShadow: "0 4px 14px rgba(15,118,110,0.35)",
-        flexShrink: 0,
-      }}
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      role="img"
+      aria-label="Pulses"
+      style={{ flexShrink: 0 }}
     >
-      <svg
-        width={size * 0.55}
-        height={size * 0.55}
-        viewBox="0 0 24 24"
-        fill="none"
-      >
-        <path
-          d="M2 12h4l2.5-7 4 15 3-11 2 3h4.5"
-          stroke="white"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </span>
+      <path
+        d="M9 2H23A7 7 0 0 1 30 9V23A7 7 0 0 1 23 30H12L2 20V9A7 7 0 0 1 9 2Z"
+        fill="#0F766E"
+      />
+      <path d="M2 20L12 30H2Z" fill="#0B564F" />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M11 8H18A6 6 0 0 1 18 20H15V24H11V8ZM15 11H18A3 3 0 0 1 18 17H15V11Z"
+        fill="#ffffff"
+      />
+    </svg>
   );
 }
