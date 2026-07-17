@@ -22,10 +22,10 @@ Pulses Insights is a visitor intelligence dashboard built as part of the Phase 2
 - Next.js (App Router)
 - React
 - TypeScript
+- React
 - Tailwind CSS
 - shadcn/ui
 - Recharts
-- Lucide React
 
 ## Getting Started
 
