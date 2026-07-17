@@ -135,3 +135,10 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 > Make the application's background one shade lighter to better match the Emirates Insights dashboard. Keep everything else the same and do not add or remove any features.
 
 **Outcome:** Updated the application's background to a lighter warm off-white while preserving the existing color palette, layout, and functionality.
+
+## 2026-07-17 — Visitor Journeys refinement
+
+**Prompt:**
+> Refine the Visitor Journeys page to make it feel more interactive and polished. Add hover interactions throughout the journey visualization so users can explore each step more easily. Improve the visual hierarchy, spacing, animations, and overall user experience while keeping the existing functionality and Emirates Insights design language consistent.
+
+**Outcome:** Enhanced the Visitor Journeys page by adding interactive hover states, improving the journey visualization, refining spacing and animations, and creating a more polished and intuitive user experience while maintaining the existing functionality.
