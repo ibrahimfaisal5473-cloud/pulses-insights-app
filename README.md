@@ -75,4 +75,4 @@ The application uses a mock backend built with Next.js API routes. Each dashboar
 
 ## AI Assistance
 
-AI tools (Claude and ChatGPT) were used to assist with planning, implementation, debugging, and UI refinement. A complete log of prompts used during development is available in `PROMPTS.md`.
+AI tool (Claude) was used to assist with planning, implementation, debugging, and UI refinement. A complete log of prompts used during development is available in `PROMPTS.md`.
