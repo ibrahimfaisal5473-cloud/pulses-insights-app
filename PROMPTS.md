@@ -101,3 +101,37 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 > Follow the architecture we agreed on earlier. When finished, summarize what you implemented, explain any architectural decisions, build and lint the project, and then stop and wait for my review.
 
 **Outcome:** Implemented the mock backend using Next.js API routes with realistic analytics data, shared TypeScript interfaces, reusable API layer, and independent data fetching for each dashboard widget. Built the Overview page with KPI cards, visitor trend, occupancy, and visitor distribution charts, along with loading and error states. Verified the project by building and linting successfully before committing and pushing the changes to the repository.
+
+
+## 2026-07-17 — Milestone 5: Complete dashboard
+
+**Prompt:**
+> Build the remaining dashboard pages: Visitor Analytics, Zone Analytics, Visitor Journeys, and Dissatisfied Visitors. For each page, implement the required KPI cards, charts, tables, filters, mock API routes, and realistic mock data. Ensure every widget fetches independently from its own API endpoint, add loading and error states, keep all components modular and responsive, and maintain the Emirates Insights design language throughout. When finished, summarize what was implemented, run build and lint and wait for review.
+> 
+**Outcome:** Completed the remaining dashboard pages with reusable components, charts, tables, filters, independent API endpoints, realistic mock data, loading and error states, and a consistent Emirates-inspired design across the application.
+
+
+## 2026-07-17 — Emirates branding
+
+**Prompt:**
+> Update the application's UI to better match the Emirates Insights dashboard. Apply the Emirates-inspired color palette and branding throughout the application while keeping the existing layout and functionality unchanged.
+
+**Outcome:** Updated the application's color palette and branding to better align with the Emirates Insights design without changing any functionality.
+
+---
+
+## 2026-07-17 — Typography refinement
+
+**Prompt:**
+> Update the application's typography to better match the Emirates Insights dashboard. Replace the current font with Inter throughout the app and refine the typography hierarchy by adjusting font sizes, weights, and spacing. Keep the existing layout and functionality unchanged.
+
+**Outcome:** Replaced the application's typography with Inter and refined the font hierarchy across headings, navigation, KPI cards, tables, and body text to improve readability and better match the Emirates-inspired design.
+
+---
+
+## 2026-07-17 — Background refinement
+
+**Prompt:**
+> Make the application's background one shade lighter to better match the Emirates Insights dashboard. Keep everything else the same and do not add or remove any features.
+
+**Outcome:** Updated the application's background to a lighter warm off-white while preserving the existing color palette, layout, and functionality.
