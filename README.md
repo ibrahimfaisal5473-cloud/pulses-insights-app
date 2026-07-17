@@ -1,38 +1,124 @@
 # Pulses Insights
 
-Pulses Insights is a visitor intelligence dashboard built as part of the Phase 2 application development assignment. The application is inspired by the Emirates Insights dashboard and provides an interactive analytics platform for monitoring visitor activity through KPI cards, charts, tables, and journey visualizations.
+Pulses Insights is a visitor intelligence dashboard developed as part of the Phase 2 application development assignment during the Pulses.ai internship process.
 
-## Features
+The application is inspired by the Emirates Insights dashboard and recreates the experience of an enterprise analytics platform using modern web technologies. It provides an interactive environment for monitoring visitor behaviour, occupancy trends, visitor journeys, and overall engagement through a collection of dashboards, charts, KPI cards, and data visualizations.
 
-- Secure login with mock authentication
-- Responsive dashboard layout
-- Overview dashboard with KPI cards and analytics
-- Visitor Analytics
-- Zone Analytics
-- Visitor Journeys
-- Dissatisfied Visitors
-- Mock backend using Next.js API routes
+The project is powered entirely by a mock backend built with Next.js API Routes. No real database or production data is used—all analytics displayed throughout the application are generated from realistic mock datasets designed to simulate a live visitor intelligence system.
+
+---
+
+# Project Goals
+
+The primary objectives of this project were to:
+
+- Build a production-style analytics dashboard from scratch.
+- Design a scalable and maintainable application architecture.
+- Implement secure mock authentication.
+- Create a reusable component library.
+- Emulate a backend using Next.js API Routes.
+- Display realistic analytics using independently fetched mock data.
+- Deliver a responsive user interface inspired by the Emirates Insights dashboard.
+
+---
+
+# Features
+
+## Authentication
+
+- Secure login page
+- Username/password authentication
+- Session stored using httpOnly cookies
+- Protected dashboard routes
+- Automatic redirects for authenticated and unauthenticated users
+- Logout functionality
+
+---
+
+## Dashboard
+
+The application contains multiple dashboard sections:
+
+### Overview
+
+Provides a high-level summary of visitor activity including:
+
+- KPI cards
+- Visitor trends
+- Occupancy overview
+- Visitor distribution
+- Quick performance metrics
+
+### Visitor Analytics
+
+Displays visitor behaviour through detailed charts and statistics including visitor trends and engagement metrics.
+
+### Zone Analytics
+
+Shows how visitors interact across different areas, including occupancy and activity levels for each zone.
+
+### Visitor Journeys
+
+Visualizes visitor movement and behaviour across different stages of their journey through interactive charts and flow visualizations.
+
+### Dissatisfied Visitors
+
+Highlights visitors requiring attention through sentiment and engagement metrics.
+
+---
+
+## Mock Backend
+
+Instead of using a database, the application emulates a backend using Next.js API Routes.
+
+Features include:
+
+- Independent API endpoint for every dashboard widget
 - Realistic mock analytics data
-- Independent API endpoints for each dashboard widget
-- Loading and error states
-- Emirates-inspired UI and responsive design
+- Modular API structure
+- Shared TypeScript interfaces
+- Reusable API layer
+- Independent loading and error states
 
-## Tech Stack
+This architecture closely mirrors how a production analytics platform would separate frontend and backend responsibilities.
 
-- Next.js (App Router)
+---
+
+# Tech Stack
+
+- Next.js 16 (App Router)
 - React
 - TypeScript
-- React
-- Tailwind CSS
+- Tailwind CSS v4
 - shadcn/ui
 - Recharts
+- Lucide React
+- Next.js API Routes
 
-## Getting Started
+---
+
+# Project Structure
+
+```
+src/
+├── app/                  # Pages, layouts and API routes
+├── components/           # Reusable UI components
+├── hooks/                # Data fetching hooks
+├── lib/                  # Authentication and shared utilities
+├── services/             # API layer
+├── types/                # Shared TypeScript interfaces
+├── mock/                 # Mock analytics data
+└── config/               # Navigation and application configuration
+```
+
+---
+
+# Running the Project
 
 Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/ibrahimfaisal5473-cloud/pulses-insights-app.git
 cd pulses-insights-app
 ```
 
@@ -48,31 +134,58 @@ Start the development server:
 npm run dev
 ```
 
-Open http://localhost:3000 in your browser.
-
-### Demo Credentials
-
-Username: `admin`
-
-Password: `password123`
-
-## Project Structure
+Open your browser and navigate to:
 
 ```
-src/
-├── app/              # App Router pages, layouts and API routes
-├── components/       # Reusable UI components
-├── config/           # Navigation and application configuration
-├── hooks/            # Custom React hooks
-├── lib/              # Authentication, API utilities and helpers
-├── types/            # Shared TypeScript interfaces
-└── data/             # Mock analytics data
+http://localhost:3000
 ```
 
-## Architecture
+---
 
-The application uses a mock backend built with Next.js API routes. Each dashboard widget retrieves its data independently from its own endpoint, allowing components to remain modular and reusable. Authentication is implemented using secure httpOnly cookies, and all dashboard routes are protected.
+# Demo Credentials
 
-## AI Assistance
+```
+Username: admin
+Password: password123
+```
 
-AI tool (Claude) was used to assist with planning, implementation, debugging, and UI refinement. A complete log of prompts used during development is available in `PROMPTS.md`.
+---
+
+# Architecture
+
+The application follows a modular architecture where each dashboard widget is responsible for retrieving its own data through dedicated API endpoints.
+
+This approach keeps the application scalable, reusable, and easy to maintain. Authentication, routing, API communication, reusable components, and shared types are separated into dedicated modules to ensure a clean codebase.
+
+---
+
+# Design
+
+The user interface is heavily inspired by the Emirates Insights dashboard while being implemented from scratch for this project.
+
+The application uses:
+
+- Emirates-inspired colour palette
+- Enterprise dashboard layout
+- Responsive sidebar navigation
+- Sticky header
+- Reusable KPI cards
+- Interactive charts
+- Modern typography
+- Responsive design across desktop and mobile devices
+
+---
+
+# AI Assistance
+
+AI tools including Claude and ChatGPT were used throughout development to assist with project planning, architecture design, implementation, debugging, and UI refinement.
+
+A complete log of all major prompts used during development is included in **PROMPTS.md**, as required by the Phase 2 assignment.
+
+---
+
+# Notes
+
+This project was developed solely for the Pulses.ai internship assessment and is intended to demonstrate frontend architecture, dashboard design, authentication, routing, reusable component design, API integration, and modern React development practices.
+
+All analytics data shown within the application is mock data generated for demonstration purposes only and does not represent real visitor information.
