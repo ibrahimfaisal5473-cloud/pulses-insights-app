@@ -178,7 +178,7 @@ The application uses:
 
 # AI Assistance
 
-AI tools including Claude and ChatGPT were used throughout development to assist with project planning, architecture design, implementation, debugging, and UI refinement.
+AI tool (Claude) was used throughout development to assist with project planning, architecture design, implementation, debugging, and UI refinement.
 
 A complete log of all major prompts used during development is included in **PROMPTS.md**, as required by the Phase 2 assignment.
 
