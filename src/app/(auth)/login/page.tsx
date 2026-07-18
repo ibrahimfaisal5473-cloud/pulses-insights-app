@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -202,13 +203,13 @@ export default function LoginPage() {
                   <Checkbox id="remember" />
                   Remember me for 30 days
                 </label>
-                <a
-                  href="#"
+                <Link
+                  href="/support"
                   className="text-sm font-medium hover:underline"
                   style={{ color: BRAND }}
                 >
                   Need help?
-                </a>
+                </Link>
               </div>
 
               {error && (
@@ -261,10 +262,13 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6 flex items-center justify-center gap-4 text-xs text-muted-foreground">
-              <a href="#" className="inline-flex items-center gap-1.5 hover:text-foreground">
+              <Link
+                href="/support"
+                className="inline-flex items-center gap-1.5 hover:text-foreground"
+              >
                 <LifeBuoy className="h-3.5 w-3.5" />
                 Support
-              </a>
+              </Link>
               <span className="text-border">|</span>
               <a href="#" className="hover:text-foreground">
                 English (UK)

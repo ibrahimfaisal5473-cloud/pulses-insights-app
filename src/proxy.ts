@@ -9,7 +9,14 @@ import { SESSION_COOKIE } from "@/lib/auth/config";
  * guidance. Authoritative checks live in the DAL (`lib/auth/dal.ts`).
  */
 
-const PUBLIC_ROUTES = ["/login"];
+/** Reachable without a session. */
+const PUBLIC_ROUTES = ["/login", "/support"];
+/**
+ * Public routes that only make sense signed out — a signed-in user hitting one
+ * gets bounced to the dashboard. /support is deliberately not here: it stays
+ * open either way, since a signed-in user can also need help.
+ */
+const SIGNED_OUT_ONLY_ROUTES = ["/login"];
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -23,8 +30,8 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.nextUrl));
   }
 
-  // Authenticated user on a public (auth) route → send to the dashboard.
-  if (isPublicRoute && isAuthenticated) {
+  // Authenticated user on a signed-out-only route → send to the dashboard.
+  if (SIGNED_OUT_ONLY_ROUTES.includes(pathname) && isAuthenticated) {
     return NextResponse.redirect(new URL("/", request.nextUrl));
   }
 

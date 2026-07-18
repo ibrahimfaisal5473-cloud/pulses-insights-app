@@ -168,7 +168,7 @@ export function FilterBar() {
             granularity out of reach. */}
         <div className="grid grid-cols-1 items-start sm:grid-cols-[1.35fr_1fr]">
           {/* Left column — date range and zones */}
-          <div className="flex max-h-[70vh] flex-col gap-5 overflow-y-auto p-5 sm:border-r">
+          <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto p-4 sm:border-r">
             <div className="flex flex-wrap gap-2">
               {RANGE_PRESETS.map((preset) => (
                 <button
@@ -269,7 +269,7 @@ export function FilterBar() {
           </div>
 
           {/* Right column — demographics and granularity */}
-          <div className="flex max-h-[70vh] flex-col gap-5 overflow-y-auto p-5">
+          <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto p-4">
             <div className="flex flex-col gap-2">
               {GENDERS.map((gender) => (
                 <label key={gender.value} className="flex items-center gap-2.5 text-sm">
@@ -319,7 +319,7 @@ export function FilterBar() {
                     aria-pressed={draft.granularity === g.value}
                     onClick={() => patch({ granularity: g.value })}
                     className={cn(
-                      "rounded-full px-5 py-1.5 text-sm transition-colors",
+                      "rounded-full px-4 py-1.5 text-sm transition-colors",
                       draft.granularity === g.value
                         ? "bg-background font-medium shadow-sm"
                         : "text-muted-foreground hover:text-foreground",
@@ -333,7 +333,7 @@ export function FilterBar() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-5 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
           <p className="text-xs text-muted-foreground">
             Date, zones, age &amp; gender apply to every view.
           </p>

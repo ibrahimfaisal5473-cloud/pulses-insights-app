@@ -10,7 +10,7 @@ export function PageHeader({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <h1 className="font-heading text-[26px] leading-tight font-semibold tracking-[-0.03em]">
+      <h1 className="font-heading text-[28px] leading-tight font-semibold tracking-[-0.03em]">
         {title}
       </h1>
       {description && (

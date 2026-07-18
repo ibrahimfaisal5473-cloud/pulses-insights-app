@@ -59,40 +59,44 @@
 
 :root {
   --background: #faf9f5;
-  --foreground: #2a2521;
+  /* Guide 3.01 black is #231F20 — used for ink rather than a warmer brown. */
+  --foreground: #231f20;
   --card: #ffffff;
-  --card-foreground: #2a2521;
+  --card-foreground: #231f20;
   --popover: #ffffff;
-  --popover-foreground: #2a2521;
-  --primary: #d71921;
+  --popover-foreground: #231f20;
+  /* Guide 3.01 primary red (Pantone 185C). */
+  --primary: #e7002a;
   --primary-foreground: #ffffff;
   --secondary: #efebe2;
-  --secondary-foreground: #2a2521;
+  --secondary-foreground: #231f20;
   --muted: #efebe2;
-  --muted-foreground: #7a7166;
+  --muted-foreground: #756e69;
   --accent: #f3ecda;
-  --accent-foreground: #2a2521;
+  --accent-foreground: #231f20;
   --destructive: #c8102e;
-  --border: #e5ded2;
-  --input: #e5ded2;
-  --ring: #d71921;
-  /* red · gold · olive · deep red · green (happiness) */
-  --chart-1: #d71921;
+  --border: #e9e3d9;
+  --input: #e9e3d9;
+  --ring: #e7002a;
+  /* brand red · gold · olive · deep red · brand green (happiness).
+     The guide's four colours can't carry a five-series chart palette, so
+     gold/olive stay as derived extensions; series 1 and 5 are brand-exact. */
+  --chart-1: #e7002a;
   --chart-2: #c8a24c;
   --chart-3: #8a8b4e;
   --chart-4: #9b1b22;
-  --chart-5: #6e8b3d;
+  --chart-5: #009848;
   /* Track behind the chart range slider. */
   --chart-brush-track: #f8e5e6;
   --radius: 0.625rem;
   --sidebar: #ffffff;
-  --sidebar-foreground: #2a2521;
-  --sidebar-primary: #d71921;
+  --sidebar-foreground: #231f20;
+  --sidebar-primary: #e7002a;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #efebe2;
-  --sidebar-accent-foreground: #2a2521;
-  --sidebar-border: #e5ded2;
-  --sidebar-ring: #d71921;
+  --sidebar-accent-foreground: #231f20;
+  --sidebar-border: #e9e3d9;
+  --sidebar-ring: #e7002a;
 }
 
 .dark {
@@ -102,7 +106,9 @@
   --card-foreground: #ece5dc;
   --popover: #272220;
   --popover-foreground: #ece5dc;
-  --primary: #e4444b;
+  /* Brand red lifted for contrast on a dark ground — the flat #e7002a fails
+     against #1e1a18 at text sizes. */
+  --primary: #f4304f;
   --primary-foreground: #ffffff;
   --secondary: #322b28;
   --secondary-foreground: #ece5dc;
@@ -113,21 +119,21 @@
   --destructive: #e4545a;
   --border: #3a332e;
   --input: #3a332e;
-  --ring: #e4444b;
-  --chart-1: #e4444b;
+  --ring: #f4304f;
+  --chart-1: #f4304f;
   --chart-2: #d4b25e;
   --chart-3: #a3a25c;
   --chart-4: #c4343a;
-  --chart-5: #8fb25b;
+  --chart-5: #2fb56e;
   --chart-brush-track: #3d2a2b;
   --sidebar: #201c1a;
   --sidebar-foreground: #ece5dc;
-  --sidebar-primary: #e4444b;
+  --sidebar-primary: #f4304f;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #322b28;
   --sidebar-accent-foreground: #ece5dc;
   --sidebar-border: #3a332e;
-  --sidebar-ring: #e4444b;
+  --sidebar-ring: #f4304f;
 }
 
 @layer base {

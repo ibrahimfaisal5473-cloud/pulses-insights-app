@@ -55,7 +55,7 @@ export function WidgetCard<TData>({
         {(stat !== undefined || exportable) && (
           <CardAction className="flex items-center gap-2">
             {stat !== undefined && (
-              <span className="font-heading text-[28px] leading-none font-semibold tracking-[-0.03em] tabular-nums">
+              <span className="font-heading text-[25px] leading-none font-semibold tracking-[-0.03em] tabular-nums">
                 {stat}
               </span>
             )}
