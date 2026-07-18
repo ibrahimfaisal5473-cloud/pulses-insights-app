@@ -15,20 +15,32 @@ export class ApiError extends Error {
   }
 }
 
-function buildSearch(query?: VisitorsQuery): string {
-  if (!query) return "";
+function buildSearch(query?: VisitorsQuery, extra?: Record<string, string>): string {
   const params = new URLSearchParams();
-  if (query.startDate) params.set("startDate", query.startDate);
-  if (query.endDate) params.set("endDate", query.endDate);
-  if (query.zones && query.zones.length > 0) {
+  if (query?.startDate) params.set("startDate", query.startDate);
+  if (query?.endDate) params.set("endDate", query.endDate);
+  if (query?.zones && query.zones.length > 0) {
     params.set("zones", query.zones.join(","));
   }
+  if (query?.genders && query.genders.length > 0) {
+    params.set("genders", query.genders.join(","));
+  }
+  if (query?.ages && query.ages.length > 0) {
+    params.set("ages", query.ages.join(","));
+  }
+  if (query?.granularity) params.set("granularity", query.granularity);
+  for (const [k, v] of Object.entries(extra ?? {})) params.set(k, v);
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
 
-export async function apiGet<T>(path: string, query?: VisitorsQuery): Promise<T> {
-  const res = await fetch(`${path}${buildSearch(query)}`);
+/** `extra` carries endpoint-specific params that aren't part of the shared filters. */
+export async function apiGet<T>(
+  path: string,
+  query?: VisitorsQuery,
+  extra?: Record<string, string>,
+): Promise<T> {
+  const res = await fetch(`${path}${buildSearch(query, extra)}`);
 
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as ApiErrorBody | null;

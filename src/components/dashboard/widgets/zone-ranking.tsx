@@ -3,7 +3,8 @@
 import type { Zone } from "@/types";
 import { useZones } from "@/hooks/use-visitors";
 import { chart } from "@/config/chart";
-import { formatNumber } from "@/lib/utils";
+import { sentimentColor } from "@/lib/sentiment";
+import { formatCompact, formatNumber } from "@/lib/utils";
 import { WidgetCard } from "../widget-card";
 import { useLens } from "../lens";
 
@@ -22,7 +23,7 @@ export function ZoneRanking() {
       title={isHappiness ? "Happiness by Zone" : "Footfall by Zone"}
       description={
         isHappiness
-          ? "Avg sentiment per zone · ranked"
+          ? "Avg sentiment per zone, with sample size · green = happy, red = unhappy"
           : "Total entries per zone — measures movement & frequency, not unique people"
       }
       query={query}
@@ -67,11 +68,11 @@ function ZoneRow({
 }) {
   const value = isHappiness ? zone.happiness : zone.totalVisitors;
   const color = isHappiness
-    ? chart.happiness
+    ? sentimentColor(zone.happiness)
     : chart.series[index % chart.series.length];
 
   return (
-    <div className="grid grid-cols-[minmax(96px,150px)_1fr_auto] items-center gap-4 py-2">
+    <div className="grid grid-cols-[minmax(96px,150px)_1fr_auto_auto] items-center gap-4 py-2">
       <span className="truncate text-[13px] text-muted-foreground">{zone.name}</span>
       <div className="h-3.5 overflow-hidden rounded-full bg-muted">
         <div
@@ -81,6 +82,10 @@ function ZoneRow({
       </div>
       <span className="min-w-14 text-right font-heading text-[15px] font-semibold tabular-nums">
         {isHappiness ? value.toFixed(1) : formatNumber(value)}
+      </span>
+      {/* An average is only as trustworthy as the sample behind it. */}
+      <span className="min-w-24 text-right text-[11px] leading-tight text-muted-foreground">
+        {isHappiness ? `${formatCompact(zone.happinessChecks)} happiness checks` : ""}
       </span>
     </div>
   );

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 /** Small-caps label used across the Overview stat cards. */
 export function StatLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+    <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
       {children}
     </span>
   );

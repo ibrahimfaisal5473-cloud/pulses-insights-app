@@ -5,6 +5,7 @@ import type { UseQueryResult } from "@tanstack/react-query";
 import { AlertCircle, RotateCw } from "lucide-react";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -23,6 +24,7 @@ export function WidgetCard<TData>({
   description,
   query,
   contentHeight = 280,
+  stat,
   children,
 }: {
   title: string;
@@ -30,13 +32,20 @@ export function WidgetCard<TData>({
   query: UseQueryResult<TData>;
   /** Height used for the skeleton so layout doesn't shift while loading. */
   contentHeight?: number;
+  /** Headline figure shown at the top-right of the card. */
+  stat?: ReactNode;
   children: (data: TData) => ReactNode;
 }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
+        {stat !== undefined && (
+          <CardAction className="font-heading text-[28px] leading-none font-semibold tracking-[-0.03em] tabular-nums">
+            {stat}
+          </CardAction>
+        )}
       </CardHeader>
       <CardContent>
         {query.isPending ? (
@@ -49,8 +58,8 @@ export function WidgetCard<TData>({
           >
             <AlertCircle className="h-6 w-6 text-destructive" />
             <div>
-              <p className="text-sm font-medium">Couldn&apos;t load this widget</p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="text-[13px] font-semibold">Couldn&apos;t load this widget</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 {query.error instanceof Error ? query.error.message : "Unknown error"}
               </p>
             </div>

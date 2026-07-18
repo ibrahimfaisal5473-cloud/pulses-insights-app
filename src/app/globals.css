@@ -7,7 +7,7 @@
 /*
  * Emirates-aligned theme for Pulses Insights.
  * Palette: Emirates red primary, gold + olive accents, warm cream ground,
- * serif display type. Everything is token-driven so shadcn components,
+ * Inter throughout. Everything is token-driven so shadcn components,
  * charts, and the shell all re-theme from here.
  */
 
@@ -16,7 +16,9 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  /* Display type is Inter too — `font-heading` now only carries the tighter
+     tracking/weight intent of a heading, not a separate family. */
+  --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -56,7 +58,7 @@
 }
 
 :root {
-  --background: #f5f3ee;
+  --background: #faf9f5;
   --foreground: #2a2521;
   --card: #ffffff;
   --card-foreground: #2a2521;
@@ -80,6 +82,8 @@
   --chart-3: #8a8b4e;
   --chart-4: #9b1b22;
   --chart-5: #6e8b3d;
+  /* Track behind the chart range slider. */
+  --chart-brush-track: #f8e5e6;
   --radius: 0.625rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #2a2521;
@@ -115,6 +119,7 @@
   --chart-3: #a3a25c;
   --chart-4: #c4343a;
   --chart-5: #8fb25b;
+  --chart-brush-track: #3d2a2b;
   --sidebar: #201c1a;
   --sidebar-foreground: #ece5dc;
   --sidebar-primary: #e4444b;
@@ -131,8 +136,40 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Inter sets a touch wide for dense UI at 14px. */
+    letter-spacing: -0.006em;
   }
   html {
     @apply font-sans;
+    font-optical-sizing: auto;
+  }
+  /*
+   * `font-heading` is the same family as body now, so it carries the display
+   * intent instead: Inter needs negative tracking to hold together at the
+   * sizes headings and KPI figures use. Utilities still win over this
+   * (`tracking-*` lands in the later utilities layer).
+   */
+  .font-heading {
+    letter-spacing: -0.021em;
+  }
+  /*
+   * Recharts' brush (the chart range slider) draws its track as a bare <rect>
+   * with presentation attributes, so it can only be re-themed from CSS.
+   */
+  .recharts-brush > rect:first-of-type {
+    fill: var(--chart-brush-track);
+    stroke: none;
+    rx: 9;
+  }
+  /* The drag region sits over the track — let the track colour through. */
+  .recharts-brush-slide {
+    fill: transparent;
+  }
+  .recharts-brush-texts text {
+    fill: var(--muted-foreground);
+    font-size: 11px;
+  }
+  .recharts-brush-traveller {
+    cursor: ew-resize;
   }
 }

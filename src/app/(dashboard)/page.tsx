@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/dashboard/page-header";
+import { FilterBar } from "@/components/dashboard/filter-bar";
 import { LensProvider, LensSwitch } from "@/components/dashboard/lens";
 import { UniquePeople } from "@/components/dashboard/widgets/unique-people";
 import { Footfall } from "@/components/dashboard/widgets/footfall";
@@ -22,10 +23,13 @@ export default function OverviewPage() {
   return (
     <LensProvider>
       <div className="flex flex-col gap-6">
-        <PageHeader
-          title="Overview"
-          description="Key visitor metrics for the last 30 days."
-        />
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <PageHeader
+            title="Overview"
+            description="Key visitor metrics across the selected range."
+          />
+          <FilterBar />
+        </div>
 
         <LensSwitch />
 

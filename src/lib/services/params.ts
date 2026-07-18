@@ -1,12 +1,37 @@
+import { AGE_BANDS, type AgeBand, GRANULARITIES, type Granularity } from "@/types";
+
 /**
  * Shared query-string parsing for the /api/v1 endpoints.
  * Defaults to the last 30 days when no range is supplied.
  */
 
+const GENDERS = ["male", "female"];
+
+/** Splits a csv param and rejects any value outside `allowed`. */
+function parseCsv<T extends string>(
+  raw: string | null,
+  allowed: readonly T[],
+  label: string,
+): { ok: true; values: T[] } | { ok: false; error: string } {
+  if (!raw) return { ok: true, values: [] };
+
+  const values = raw.split(",").map((v) => v.trim()).filter(Boolean);
+  const bad = values.find((v) => !(allowed as readonly string[]).includes(v));
+  if (bad) {
+    return { ok: false, error: `${label} contains an unknown value: ${bad}` };
+  }
+  return { ok: true, values: values as T[] };
+}
+
 export type ParsedVisitorsQuery = {
   start: Date;
   end: Date;
   zoneIds: string[];
+  /** Empty = all genders. */
+  genders: string[];
+  /** Empty = all age bands. */
+  ages: AgeBand[];
+  granularity: Granularity;
 };
 
 export type ParseResult =
@@ -43,5 +68,29 @@ export function parseVisitorsQuery(searchParams: URLSearchParams): ParseResult {
     ? zonesRaw.split(",").map((z) => z.trim()).filter(Boolean)
     : [];
 
-  return { ok: true, query: { start, end, zoneIds } };
+  const genders = parseCsv(searchParams.get("genders"), GENDERS, "genders");
+  if (!genders.ok) return genders;
+
+  const ages = parseCsv(searchParams.get("ages"), AGE_BANDS, "ages");
+  if (!ages.ok) return ages;
+
+  const granularityRaw = searchParams.get("granularity") ?? "day";
+  if (!(GRANULARITIES as readonly string[]).includes(granularityRaw)) {
+    return {
+      ok: false,
+      error: `granularity must be one of: ${GRANULARITIES.join(", ")}`,
+    };
+  }
+
+  return {
+    ok: true,
+    query: {
+      start,
+      end,
+      zoneIds,
+      genders: genders.values,
+      ages: ages.values,
+      granularity: granularityRaw as Granularity,
+    },
+  };
 }

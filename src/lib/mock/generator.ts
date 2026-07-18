@@ -34,8 +34,18 @@ function prng(seedText: string): () => number {
 }
 
 /** Single deterministic sample in [min, max) for a seed key. */
-function sample(seedText: string, min = 0, max = 1): number {
+export function sample(seedText: string, min = 0, max = 1): number {
   return min + prng(seedText)() * (max - min);
+}
+
+/** Deterministic integer in [min, max]. */
+export function sampleInt(seedText: string, min: number, max: number): number {
+  return Math.round(sample(seedText, min, max));
+}
+
+/** Deterministic pick from a list. */
+export function samplePick<T>(seedText: string, items: readonly T[]): T {
+  return items[Math.min(items.length - 1, Math.floor(sample(seedText) * items.length))];
 }
 
 /* ---------- calendar helpers ---------- */
@@ -68,7 +78,7 @@ export function dayOfWeek(day: string): HeatmapDay {
 /* ---------- traffic model ---------- */
 
 /** Weekly rhythm: busy midweek, quiet weekends. */
-function weekdayFactor(day: string): number {
+export function weekdayFactor(day: string): number {
   const dow = dayOfWeek(day);
   if (dow === "Sat") return 0.32;
   if (dow === "Sun") return 0.22;
@@ -95,12 +105,16 @@ export function maleShare(day: string): number {
 /** Age-band weights for a day (jittered around a fixed profile, sums to 1). */
 export function ageWeights(day: string): Record<AgeBand, number> {
   const base: Record<AgeBand, number> = {
-    "0-14": 0.025,
-    "15-24": 0.18,
-    "25-34": 0.36,
-    "35-44": 0.23,
-    "45-54": 0.135,
-    "55+": 0.07,
+    "0s": 0.0005,
+    "10s": 0.0015,
+    "20s": 0.135,
+    "30s": 0.66,
+    "40s": 0.165,
+    "50s": 0.026,
+    "60s": 0.0035,
+    "70s": 0.0007,
+    "80s": 0.0003,
+    Unknown: 0.0005,
   };
   let total = 0;
   const jittered = {} as Record<AgeBand, number>;
@@ -132,10 +146,40 @@ export function dayHappiness(day: string, zones: MockZone[]): number {
   const zoneOffset =
     zones.reduce((s, z) => s + z.happinessOffset * z.weight, 0) /
     zones.reduce((s, z) => s + z.weight, 0);
-  const dayNum = new Date(`${day}T00:00:00Z`).getTime() / 86400000;
-  const drift = Math.sin(dayNum / 5.3) * 2.5;
   const noise = sample(`hap:${day}`, -3.5, 3.5);
-  return Math.round(Math.min(97, Math.max(68, 84 + zoneOffset + drift + noise)) * 10) / 10;
+  const value = 84 + zoneOffset + happinessDrift(day) + noise;
+  return Math.round(Math.min(97, Math.max(68, value)) * 10) / 10;
+}
+
+/** Shared site-wide mood swing for a day — zones drift together. */
+function happinessDrift(day: string): number {
+  const dayNum = new Date(`${day}T00:00:00Z`).getTime() / 86400000;
+  return Math.sin(dayNum / 5.3) * 2.5;
+}
+
+/**
+ * Happiness index (0–100) for a single zone on a single day.
+ *
+ * Unlike `dayHappiness`, the noise is seeded per zone, so zones deviate from
+ * each other day to day instead of moving in lockstep at a fixed offset —
+ * which is what makes the per-zone-over-time grid worth reading.
+ */
+export function zoneDayHappiness(day: string, zone: MockZone): number {
+  const noise = sample(`zhap:${day}:${zone.id}`, -4, 4);
+  const value = 84 + zone.happinessOffset + happinessDrift(day) + noise;
+  return Math.round(Math.min(97, Math.max(68, value)) * 10) / 10;
+}
+
+/**
+ * Happiness checks (sentiment samples) recorded in a zone on a day.
+ *
+ * Sampling is continuous while a visitor is present, so the count scales with
+ * dwell time — roughly one check per three minutes — not just headcount.
+ */
+export function zoneDayChecks(day: string, zone: MockZone): number {
+  const perVisitor = zone.dwellMinutes / 3;
+  const jitter = sample(`chk:${day}:${zone.id}`, 0.85, 1.15);
+  return Math.round(zoneDayVisitors(day, zone) * perVisitor * jitter);
 }
 
 /**
@@ -144,6 +188,72 @@ export function dayHappiness(day: string, zones: MockZone[]): number {
  */
 export function segmentHappinessOffset(segment: string): number {
   return sample(`seg:${segment}`, -2.6, 2.6);
+}
+
+/* ---------- demographic cohort ---------- */
+
+/**
+ * The gender/age slice a query asks for. An empty list means "all", matching
+ * how the filter UI and query string encode an unfiltered dimension.
+ */
+export type Cohort = {
+  genders: string[];
+  ages: AgeBand[];
+};
+
+/** Share of a day's visitors matching the selected genders. */
+export function genderShare(day: string, genders: string[]): number {
+  if (genders.length === 0) return 1;
+  const male = maleShare(day);
+  return (
+    (genders.includes("male") ? male : 0) +
+    (genders.includes("female") ? 1 - male : 0)
+  );
+}
+
+/** Share of a day's visitors falling in the selected age bands. */
+export function ageShare(day: string, ages: AgeBand[]): number {
+  if (ages.length === 0) return 1;
+  const weights = ageWeights(day);
+  return ages.reduce((sum, band) => sum + weights[band], 0);
+}
+
+/**
+ * How much of a day's traffic survives the demographic filters.
+ *
+ * Gender and age are modelled as independent, so the retained share is the
+ * product of the two — asking for "female, 30s" keeps female% × 30s% of the
+ * day. Real data would have them correlated; the mock deliberately does not,
+ * because an independent product is the assumption a reader can predict.
+ */
+export function demographicShare(day: string, cohort: Cohort): number {
+  return genderShare(day, cohort.genders) * ageShare(day, cohort.ages);
+}
+
+/** Unique visitors entering a zone on a day, narrowed to the cohort. */
+export function cohortDayVisitors(
+  day: string,
+  zone: MockZone,
+  cohort: Cohort,
+): number {
+  return Math.round(zoneDayVisitors(day, zone) * demographicShare(day, cohort));
+}
+
+/**
+ * Happiness shift from narrowing to a cohort — the mean of the selected
+ * segments' offsets, so filtering to a happier group lifts the score. Zero
+ * when nothing is filtered, which keeps the unfiltered numbers untouched.
+ *
+ * The per-segment breakdown endpoints deliberately skip this: they already
+ * apply their own segment offset, and adding both would double-count.
+ */
+export function cohortHappinessOffset(cohort: Cohort): number {
+  const offsets = [
+    ...cohort.genders.map((g) => segmentHappinessOffset(`gender:${g}`)),
+    ...cohort.ages.map((a) => segmentHappinessOffset(`age:${a}`)),
+  ];
+  if (offsets.length === 0) return 0;
+  return offsets.reduce((sum, o) => sum + o, 0) / offsets.length;
 }
 
 /* ---------- misc ---------- */

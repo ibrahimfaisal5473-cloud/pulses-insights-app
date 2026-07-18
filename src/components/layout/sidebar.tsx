@@ -15,7 +15,10 @@ export function Sidebar({ username }: { username: string }) {
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r bg-card lg:flex">
       <div className="flex items-center gap-2.5 px-5 py-5">
         <BrandMark size={32} />
-        <Link href="/" className="text-sm font-semibold tracking-tight">
+        <Link
+          href="/"
+          className="font-heading text-[15px] font-semibold tracking-[-0.02em]"
+        >
           {siteConfig.name}
         </Link>
       </div>
@@ -28,8 +31,12 @@ export function Sidebar({ username }: { username: string }) {
         <Separator className="mb-4" />
         <div className="flex items-center justify-between gap-2 px-2">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{username}</p>
-            <p className="text-xs text-muted-foreground">Administrator</p>
+            <p className="truncate text-[13px] font-medium tracking-[-0.01em]">
+              {username}
+            </p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+              Administrator
+            </p>
           </div>
           <LogoutButton />
         </div>

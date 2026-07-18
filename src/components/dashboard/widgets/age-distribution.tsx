@@ -32,6 +32,7 @@ function AgeVisitsCard() {
         const total = AGE_BANDS.reduce((sum, band) => sum + data[band], 0);
         return (
           <DonutChart
+            colors={chart.ageSeries}
             centerValue={formatCompact(total)}
             centerLabel="Visitors"
             data={AGE_BANDS.map((band) => ({ name: band, value: data[band] }))}

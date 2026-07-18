@@ -14,13 +14,13 @@ export function Header({ username }: { username: string }) {
       <MobileNav />
       <div className="flex items-center gap-2.5 lg:hidden">
         <BrandMark size={26} />
-        <span className="text-sm font-semibold tracking-tight">
+        <span className="font-heading text-[15px] font-semibold tracking-[-0.02em]">
           {siteConfig.name}
         </span>
       </div>
 
       <div className="ml-auto flex items-center gap-1.5">
-        <span className="hidden text-sm text-muted-foreground sm:inline">
+        <span className="hidden text-[13px] font-medium text-muted-foreground sm:inline">
           {username}
         </span>
         <ThemeToggle />

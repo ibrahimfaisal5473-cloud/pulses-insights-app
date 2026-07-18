@@ -15,6 +15,19 @@ export const chart = {
   muted: "#A79E92",
   /** Categorical palette for donuts / multi-series. */
   series: ["#D71921", "#C8A24C", "#8A8B4E", "#9B1B22", "#6E8B3D", "#7E8CA0"],
+  /** One colour per age decade — needs more steps than `series` provides. */
+  ageSeries: [
+    "#2F4B5C",
+    "#D71921",
+    "#C8A24C",
+    "#9B1B22",
+    "#8A8B4E",
+    "#6E8B3D",
+    "#7E8CA0",
+    "#E0B76A",
+    "#3F3A36",
+    "#A79E92",
+  ],
   /** Green scale for the Happiness lens (area = share, colour = sentiment). */
   happinessSeries: [
     "#4E7A2E",
@@ -23,5 +36,9 @@ export const chart = {
     "#A3BE70",
     "#5B7431",
     "#94AF63",
+    "#3E6524",
+    "#7C9847",
+    "#B5CD85",
+    "#688340",
   ],
 } as const;

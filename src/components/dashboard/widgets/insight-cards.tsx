@@ -119,7 +119,7 @@ function Insight({
     <Card>
       <CardContent className="flex h-full flex-col">
         <div className="flex items-start justify-between gap-3">
-          <span className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
+          <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
             <span
               className="h-2 w-2 shrink-0 rounded-full"
               style={{ background: dot }}
@@ -127,17 +127,19 @@ function Insight({
             {kicker}
           </span>
           <span className="shrink-0 whitespace-nowrap">
-            <span className="font-heading text-2xl font-semibold tabular-nums">
+            <span className="font-heading text-2xl font-semibold tracking-[-0.03em] tabular-nums">
               {metric}
             </span>
-            <span className="ml-1 text-[11px] text-muted-foreground">
+            <span className="ml-1 text-[11px] font-medium text-muted-foreground">
               {metricSuffix}
             </span>
           </span>
         </div>
 
-        <h3 className="font-heading mt-3 text-[15px] font-semibold">{title}</h3>
-        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{body}</p>
+        <h3 className="font-heading mt-3 text-[15px] leading-snug font-semibold">
+          {title}
+        </h3>
+        <p className="mt-2 text-[12.5px] leading-[1.6] text-muted-foreground">{body}</p>
 
         <Link
           href={href}
