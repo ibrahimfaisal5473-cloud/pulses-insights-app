@@ -142,3 +142,20 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 > Refine the Visitor Journeys page to make it feel more interactive and polished. Add hover interactions throughout the journey visualization so users can explore each step more easily. Improve the visual hierarchy, spacing, animations, and overall user experience while keeping the existing functionality and Emirates Insights design language consistent.
 
 **Outcome:** Enhanced the Visitor Journeys page by adding interactive hover states, improving the journey visualization, refining spacing and animations, and creating a more polished and intuitive user experience while maintaining the existing functionality.
+
+2026-07-17 — Dashboard filters
+
+Prompt:
+
+Add a global filter panel similar to the Emirates Insights dashboard. Include date range presets, zone selection, gender, age group, and time granularity filters. Ensure the filters update the relevant dashboard widgets, remain reusable across the application, and match the existing design.
+
+Outcome: Implemented a reusable global filtering system with date, zone, gender, age group, and time granularity filters, integrating it across the dashboard while maintaining the existing design and functionality.
+
+
+2026-07-17 — Dashboard exports
+
+Prompt:
+
+Add export functionality to the dashboard. Add a three-dot menu to the main charts allowing users to download each chart as a PNG image or PDF, and add a top-right Download PDF Report button that exports the dashboard's key charts and statistics in a professional multi-page report.
+
+Outcome: Added reusable export controls for the main charts, allowing individual PNG and PDF downloads, and implemented a dashboard-wide PDF report generator for exporting the key charts and statistics.
