@@ -159,3 +159,12 @@ Prompt:
 Add export functionality to the dashboard. Add a three-dot menu to the main charts allowing users to download each chart as a PNG image or PDF, and add a top-right Download PDF Report button that exports the dashboard's key charts and statistics in a professional multi-page report.
 
 Outcome: Added reusable export controls for the main charts, allowing individual PNG and PDF downloads, and implemented a dashboard-wide PDF report generator for exporting the key charts and statistics.
+
+
+2026-07-17 — Login page improvements
+
+Prompt:
+
+Refine the login page by improving its layout, spacing, and overall visual polish. Also, make the existing Help & Support link functional by creating a dedicated Help & Support page that matches the application's design while keeping all authentication functionality unchanged.
+
+Outcome: Enhanced the login page's overall design and user experience, and added a dedicated Help & Support page linked from the login screen while maintaining the existing authentication flow.
