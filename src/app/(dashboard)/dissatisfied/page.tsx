@@ -1,11 +1,7 @@
 import { PageHeader } from "@/components/dashboard/page-header";
 import { FilterBar } from "@/components/dashboard/filter-bar";
-import { DissatisfiedSummaryBanner } from "@/components/dashboard/widgets/dissatisfied-summary";
-import { DissatisfiedList } from "@/components/dashboard/widgets/dissatisfied-list";
-import { UnhappyJourneys } from "@/components/dashboard/widgets/unhappy-journeys";
-import { DissatisfiedByHour } from "@/components/dashboard/widgets/dissatisfied-by-hour";
-import { DissatisfiedDemographics } from "@/components/dashboard/widgets/dissatisfied-demographics";
-import { RepeatSentiment } from "@/components/dashboard/widgets/repeat-sentiment";
+import { ReportButton } from "@/components/dashboard/report/report-button";
+import { DissatisfiedSection } from "@/components/dashboard/sections/dissatisfied-section";
 
 /**
  * Dissatisfied Visitors — the daily review queue. Everything here is
@@ -20,21 +16,13 @@ export default function DissatisfiedVisitorsPage() {
           title="Dissatisfied Visitors"
           description="Low-sentiment visits flagged for follow-up on the floor."
         />
-        <FilterBar />
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterBar />
+          <ReportButton />
+        </div>
       </div>
 
-      <DissatisfiedSummaryBanner />
-      <DissatisfiedList />
-
-      <section className="grid gap-4 lg:grid-cols-2">
-        <UnhappyJourneys />
-        <DissatisfiedByHour />
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-2">
-        <DissatisfiedDemographics />
-        <RepeatSentiment />
-      </section>
+      <DissatisfiedSection />
     </div>
   );
 }

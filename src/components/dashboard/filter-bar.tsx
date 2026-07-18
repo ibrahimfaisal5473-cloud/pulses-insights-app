@@ -23,7 +23,7 @@ import { JOURNEY_PHASE_IDS } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, formatDateRange } from "@/lib/utils";
 
 /**
  * Dashboard filters — one popover covering date range, zones, demographics and
@@ -40,25 +40,6 @@ const PHASE_LABELS: Record<JourneyPhaseId, string> = {
   service: "Service",
   activity: "Activity",
 };
-
-const dateFmt = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
-
-/** "27 Apr – 12 Jun 2026", dropping the year from the start when it repeats. */
-function formatRange(start: Date, end: Date): string {
-  const endLabel = dateFmt.format(end);
-  if (start.toDateString() === end.toDateString()) return endLabel;
-
-  const startLabel =
-    start.getFullYear() === end.getFullYear()
-      ? dateFmt.format(start).replace(` ${start.getFullYear()}`, "")
-      : dateFmt.format(start);
-
-  return `${startLabel} – ${endLabel}`;
-}
 
 const toInputDate = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -164,7 +145,7 @@ export function FilterBar() {
       >
         <span className="flex items-center gap-2 text-primary">
           <CalendarDays className="h-4 w-4" />
-          {formatRange(applied.start, applied.end)}
+          {formatDateRange(applied.start, applied.end)}
         </span>
 
         <span aria-hidden className="h-4 w-px bg-border" />

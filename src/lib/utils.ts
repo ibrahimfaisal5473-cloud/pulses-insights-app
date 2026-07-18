@@ -34,3 +34,22 @@ export function formatShortDate(iso: string): string {
     timeZone: "UTC",
   })
 }
+
+const dayFormat = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+})
+
+/** "27 Apr – 12 Jun 2026", dropping the year from the start when it repeats. */
+export function formatDateRange(start: Date, end: Date): string {
+  const endLabel = dayFormat.format(end)
+  if (start.toDateString() === end.toDateString()) return endLabel
+
+  const startLabel =
+    start.getFullYear() === end.getFullYear()
+      ? dayFormat.format(start).replace(` ${start.getFullYear()}`, "")
+      : dayFormat.format(start)
+
+  return `${startLabel} – ${endLabel}`
+}
