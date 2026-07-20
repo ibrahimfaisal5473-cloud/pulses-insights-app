@@ -18,8 +18,19 @@ export function Providers({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            // Widget data is derived deterministically from the filters in the
+            // URL, so a cached response stays correct for as long as we keep
+            // it. A long staleTime is what makes navigating back to a page you
+            // already visited render from cache instead of refetching.
+            staleTime: 5 * 60 * 1000,
+            // Outlives staleTime so returning to a page after a detour still
+            // has its entries to serve while any refetch happens.
+            gcTime: 30 * 60 * 1000,
             refetchOnWindowFocus: false,
+            refetchOnReconnect: false,
+            // The mock backend either answers or reports a real error; retrying
+            // three times just delays the error state a widget wants to show.
+            retry: 1,
           },
         },
       }),

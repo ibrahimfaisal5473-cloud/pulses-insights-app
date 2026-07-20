@@ -265,8 +265,17 @@ export function resolveZones(zoneIds: string[]): MockZone[] {
   return matched.length > 0 ? matched : MOCK_ZONES;
 }
 
-/** Small artificial latency so loading states are visible in the UI. */
+/**
+ * Small artificial latency so loading states are visible in the UI.
+ *
+ * Kept deliberately short: a page renders a dozen widgets at once, and each
+ * one pays this delay before its chart can draw, so anything larger reads as
+ * the app being slow rather than as a loading state. Set to 0 to remove the
+ * skeleton flash entirely.
+ */
+const MOCK_LATENCY_MS = 40;
+
 export function mockLatency(): Promise<void> {
-  const ms = 200 + Math.random() * 300;
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  if (MOCK_LATENCY_MS <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, MOCK_LATENCY_MS));
 }
