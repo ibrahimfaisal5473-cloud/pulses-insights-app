@@ -35,6 +35,34 @@ The primary objectives of this project were to:
 
 ---
 
+## Support
+
+A help page reachable from the login screen, so a user who cannot sign in can
+still report the problem without needing an account.
+
+- Reachable before authentication
+- Email, phone number and issue description
+- Validated on the server, with field-level error messages
+- Returns a short reference number the user can quote when following up
+
+In keeping with the rest of the project, the intake is mocked: the request is
+recorded and acknowledged rather than sent to a real ticketing system.
+
+---
+
+## Reporting and Export
+
+Every widget can be exported on its own, and any dashboard section can be
+exported as a complete report.
+
+- Per-widget download menu offering PNG or PDF
+- Full multi-section PDF report covering all widgets on the page
+- Paginated A4 output, with the title, selected date range and active filters
+- Export controls remove themselves from the capture, so they never appear in
+  the exported file
+
+---
+
 ## Dashboard
 
 The application contains multiple dashboard sections:
