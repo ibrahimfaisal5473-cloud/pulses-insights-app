@@ -104,10 +104,14 @@ src/
 ├── app/                  # Pages, layouts and API routes
 ├── components/           # Reusable UI components
 ├── hooks/                # Data fetching hooks
-├── lib/                  # Authentication and shared utilities
-├── services/             # API layer
+├── lib/                  # Shared utilities
+│   ├── api/              # Typed fetchers for the API routes
+│   ├── auth/             # Session, JWT and route guards
+│   ├── export/           # PDF report generation
+│   ├── mock/             # Mock analytics data
+│   └── services/         # Data layer behind the API routes
+├── providers/            # Client-side app providers
 ├── types/                # Shared TypeScript interfaces
-├── mock/                 # Mock analytics data
 └── config/               # Navigation and application configuration
 ```
 
