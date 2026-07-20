@@ -167,3 +167,11 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 > Refine the login page by improving its layout, spacing, and overall visual polish. Also, make the existing Help & Support link functional by creating a dedicated Help & Support page that matches the application's design while keeping all authentication functionality unchanged.
 
 **Outcome:** Enhanced the login page's overall design and user experience, and added a dedicated Help & Support page linked from the login screen while maintaining the existing authentication flow.
+
+
+## 2026-07-18 — Performance optimization
+
+**Prompt:**
+> Optimize the application's performance without changing any functionality, layout, styling, or features. Improve rendering performance, reduce unnecessary React re-renders, optimize chart rendering and animations, cache API requests where appropriate, and make the UI feel smoother overall. In particular, make page navigation, chart loading, bar animations, hover interactions, and tooltips on pages like Visitor Analytics and Zone Analytics much smoother and more responsive while keeping the application's appearance exactly the same.
+
+**Outcome:** Optimized the application's overall performance by reducing unnecessary re-renders, improving chart rendering and animations, optimizing data fetching and caching, and refining page transitions, hover interactions, and tooltips to create a smoother, more responsive user experience while preserving the existing design and functionality.
