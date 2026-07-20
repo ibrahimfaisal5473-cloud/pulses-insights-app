@@ -43,3 +43,6 @@ next-env.d.ts
 
 # unrelated project that lives in this folder but is its own git repo
 /suhail-airlines-insights
+
+# local Claude Code dev-server config
+/.claude/launch.json

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -11,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import type { BarRow } from "./bar-chart";
-import { chart } from "@/config/chart";
+import { axisTick, chart, tooltipStyle } from "@/config/chart";
 import { formatCompact } from "@/lib/utils";
 
 /**
@@ -20,7 +21,7 @@ import { formatCompact } from "@/lib/utils";
  * sentiment). The two axes are the point: forcing both onto one would flatten
  * the line into the noise floor.
  */
-export function BarLineChart({
+export const BarLineChart = memo(function BarLineChart({
   data,
   xKey,
   bar,
@@ -49,7 +50,7 @@ export function BarLineChart({
         <XAxis
           dataKey={xKey}
           tickFormatter={xTickFormatter}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          tick={axisTick}
           tickLine={false}
           axisLine={false}
           minTickGap={16}
@@ -57,7 +58,7 @@ export function BarLineChart({
         <YAxis
           yAxisId="bar"
           tickFormatter={(v) => formatCompact(Number(v))}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          tick={axisTick}
           tickLine={false}
           axisLine={false}
           width={48}
@@ -83,13 +84,7 @@ export function BarLineChart({
             name === line.name ? lineFormatter(Number(value)) : barFormatter(Number(value)),
             String(name),
           ]}
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            color: "var(--popover-foreground)",
-            fontSize: 12,
-          }}
+          contentStyle={tooltipStyle}
         />
         <Bar
           yAxisId="bar"
@@ -114,4 +109,4 @@ export function BarLineChart({
       </ComposedChart>
     </ResponsiveContainer>
   );
-}
+});

@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+import type { ZonesResponse } from "@/types";
 import { useZones } from "@/hooks/use-visitors";
 import { ZoneTreemap, type TreemapItem } from "@/components/charts/zone-treemap";
 import { chart } from "@/config/chart";
@@ -29,32 +31,43 @@ export function ZoneTreemapWidget() {
       query={query}
       contentHeight={320}
     >
-      {(data) => {
-        const items: TreemapItem[] = data.zones.map((zone, i) =>
-          isHappiness
-            ? {
-                id: zone.id,
-                name: zone.name,
-                value: zone.happiness,
-                display: String(Math.round(zone.happiness)),
-                displaySuffix: "/100",
-                caption: `${formatCompact(zone.happinessChecks)} happiness checks`,
-                color: sentimentColor(zone.happiness),
-                title: `${zone.name} — happiness ${zone.happiness.toFixed(1)}/100 from ${formatNumber(zone.happinessChecks)} happiness checks`,
-              }
-            : {
-                id: zone.id,
-                name: zone.name,
-                value: zone.totalVisitors,
-                display: formatNumber(zone.totalVisitors),
-                caption: `${zone.percentOfTotal}% of total`,
-                color: chart.series[i % chart.series.length],
-                title: `${zone.name} — ${formatNumber(zone.totalVisitors)} visitors (${zone.percentOfTotal}%)`,
-              },
-        );
-
-        return <ZoneTreemap items={items} height={320} />;
-      }}
+      {(data) => <Body data={data} isHappiness={isHappiness} />}
     </WidgetCard>
   );
+}
+
+/**
+ * Split out so the items array is memoised on the query data — a stable
+ * reference is what lets the treemap skip re-laying-out when this widget
+ * re-renders for reasons other than new data (e.g. a resize elsewhere).
+ */
+function Body({ data, isHappiness }: { data: ZonesResponse; isHappiness: boolean }) {
+  const items = useMemo<TreemapItem[]>(
+    () =>
+      data.zones.map((zone, i) =>
+        isHappiness
+          ? {
+              id: zone.id,
+              name: zone.name,
+              value: zone.happiness,
+              display: String(Math.round(zone.happiness)),
+              displaySuffix: "/100",
+              caption: `${formatCompact(zone.happinessChecks)} happiness checks`,
+              color: sentimentColor(zone.happiness),
+              title: `${zone.name} — happiness ${zone.happiness.toFixed(1)}/100 from ${formatNumber(zone.happinessChecks)} happiness checks`,
+            }
+          : {
+              id: zone.id,
+              name: zone.name,
+              value: zone.totalVisitors,
+              display: formatNumber(zone.totalVisitors),
+              caption: `${zone.percentOfTotal}% of total`,
+              color: chart.series[i % chart.series.length],
+              title: `${zone.name} — ${formatNumber(zone.totalVisitors)} visitors (${zone.percentOfTotal}%)`,
+            },
+      ),
+    [data.zones, isHappiness],
+  );
+
+  return <ZoneTreemap items={items} height={320} />;
 }

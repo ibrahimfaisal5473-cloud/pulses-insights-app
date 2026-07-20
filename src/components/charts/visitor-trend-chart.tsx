@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   Area,
   AreaChart,
@@ -10,14 +11,18 @@ import {
   YAxis,
 } from "recharts";
 import type { VisitorsTimeseriesPoint } from "@/types";
-import { chart } from "@/config/chart";
+import { axisTick, chart, tooltipStyle } from "@/config/chart";
 import { formatCompact, formatNumber, formatShortDate } from "@/lib/utils";
 
 /**
  * Daily visitors as stacked areas (new + returning). Presentational only —
  * data arrives via props from the widget container.
  */
-export function VisitorTrendChart({ data }: { data: VisitorsTimeseriesPoint[] }) {
+export const VisitorTrendChart = memo(function VisitorTrendChart({
+  data,
+}: {
+  data: VisitorsTimeseriesPoint[];
+}) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
@@ -35,14 +40,14 @@ export function VisitorTrendChart({ data }: { data: VisitorsTimeseriesPoint[] })
         <XAxis
           dataKey="time"
           tickFormatter={formatShortDate}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          tick={axisTick}
           tickLine={false}
           axisLine={false}
           minTickGap={28}
         />
         <YAxis
           tickFormatter={formatCompact}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          tick={axisTick}
           tickLine={false}
           axisLine={false}
           width={48}
@@ -53,13 +58,7 @@ export function VisitorTrendChart({ data }: { data: VisitorsTimeseriesPoint[] })
             formatNumber(Number(value)),
             name === "new" ? "New" : "Returning",
           ]}
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            color: "var(--popover-foreground)",
-            fontSize: 12,
-          }}
+          contentStyle={tooltipStyle}
         />
         <Area
           dataKey="new"
@@ -78,4 +77,4 @@ export function VisitorTrendChart({ data }: { data: VisitorsTimeseriesPoint[] })
       </AreaChart>
     </ResponsiveContainer>
   );
-}
+});

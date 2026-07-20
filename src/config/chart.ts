@@ -42,3 +42,23 @@ export const chart = {
     "#688340",
   ],
 } as const;
+
+/**
+ * Recharts takes these as inline style/prop objects. Defining them once at
+ * module scope keeps every chart's tooltip and axes identical, and gives
+ * recharts a stable reference across renders instead of a fresh object on
+ * each one — which matters most while a tooltip is tracking the cursor.
+ */
+export const tooltipStyle = {
+  background: "var(--popover)",
+  border: "1px solid var(--border)",
+  borderRadius: 10,
+  color: "var(--popover-foreground)",
+  fontSize: 12,
+} as const;
+
+/** Shared axis tick style (11px, muted). */
+export const axisTick = {
+  fontSize: 11,
+  fill: "var(--muted-foreground)",
+} as const;

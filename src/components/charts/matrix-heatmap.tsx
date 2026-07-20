@@ -1,5 +1,7 @@
 "use client";
 
+import { memo, useMemo } from "react";
+
 export type MatrixRow = { id: string; label: string };
 export type MatrixColumn = { id: string; label: string };
 
@@ -20,7 +22,7 @@ export type MatrixCell = {
  * is legible in the cell itself, so the grid can be read exactly rather than
  * just scanned for shape.
  */
-export function MatrixHeatmap({
+export const MatrixHeatmap = memo(function MatrixHeatmap({
   rows,
   columns,
   cells,
@@ -37,7 +39,12 @@ export function MatrixHeatmap({
   mutedNote?: string;
   ariaLabel: string;
 }) {
-  const byKey = new Map(cells.map((c) => [`${c.rowId}:${c.colId}`, c]));
+  // This grid runs to hundreds of columns over a long range, so the lookup
+  // index is rebuilt only when the cells themselves change.
+  const byKey = useMemo(
+    () => new Map(cells.map((c) => [`${c.rowId}:${c.colId}`, c])),
+    [cells],
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -87,9 +94,11 @@ export function MatrixHeatmap({
       </div>
     </div>
   );
-}
+});
 
-function Row({
+/** One zone's row of cells — memoised so a re-render with the same data
+ *  doesn't rebuild every column in every row. */
+const Row = memo(function Row({
   row,
   columns,
   byKey,
@@ -124,4 +133,4 @@ function Row({
       })}
     </>
   );
-}
+});

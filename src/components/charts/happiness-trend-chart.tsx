@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   Area,
   AreaChart,
@@ -10,14 +11,18 @@ import {
   YAxis,
 } from "recharts";
 import type { HappinessPoint } from "@/types";
-import { chart } from "@/config/chart";
+import { axisTick, chart, tooltipStyle } from "@/config/chart";
 import { formatShortDate } from "@/lib/utils";
 
 /**
  * Happiness index (0–100) over time. Presentational only — data arrives via
  * props from the widget container.
  */
-export function HappinessTrendChart({ data }: { data: HappinessPoint[] }) {
+export const HappinessTrendChart = memo(function HappinessTrendChart({
+  data,
+}: {
+  data: HappinessPoint[];
+}) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
@@ -31,14 +36,14 @@ export function HappinessTrendChart({ data }: { data: HappinessPoint[] }) {
         <XAxis
           dataKey="time"
           tickFormatter={formatShortDate}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          tick={axisTick}
           tickLine={false}
           axisLine={false}
           minTickGap={28}
         />
         <YAxis
           domain={[60, 100]}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          tick={axisTick}
           tickLine={false}
           axisLine={false}
           width={48}
@@ -46,13 +51,7 @@ export function HappinessTrendChart({ data }: { data: HappinessPoint[] }) {
         <Tooltip
           labelFormatter={(v) => formatShortDate(String(v))}
           formatter={(value) => [`${Number(value).toFixed(1)}/100`, "Happiness"]}
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            color: "var(--popover-foreground)",
-            fontSize: 12,
-          }}
+          contentStyle={tooltipStyle}
         />
         <Area
           dataKey="value"
@@ -63,4 +62,4 @@ export function HappinessTrendChart({ data }: { data: HappinessPoint[] }) {
       </AreaChart>
     </ResponsiveContainer>
   );
-}
+});

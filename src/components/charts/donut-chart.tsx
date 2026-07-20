@@ -1,7 +1,8 @@
 "use client";
 
+import { memo } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { chart } from "@/config/chart";
+import { chart, tooltipStyle } from "@/config/chart";
 import { formatNumber, formatPercent } from "@/lib/utils";
 
 export type DonutSlice = {
@@ -20,7 +21,7 @@ export type DonutSlice = {
  * Generic donut with a center stat and a legend listing each slice's value
  * and share of the total.
  */
-export function DonutChart({
+export const DonutChart = memo(function DonutChart({
   data,
   centerValue,
   centerLabel,
@@ -41,13 +42,7 @@ export function DonutChart({
           <PieChart>
             <Tooltip
               formatter={(value, name) => [formatNumber(Number(value)), String(name)]}
-              contentStyle={{
-                background: "var(--popover)",
-                border: "1px solid var(--border)",
-                borderRadius: 10,
-                color: "var(--popover-foreground)",
-                fontSize: 12,
-              }}
+              contentStyle={tooltipStyle}
             />
             <Pie
               data={data}
@@ -93,4 +88,4 @@ export function DonutChart({
       </ul>
     </div>
   );
-}
+});

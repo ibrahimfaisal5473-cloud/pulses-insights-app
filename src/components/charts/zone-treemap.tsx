@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 
 export type TreemapItem = {
   id: string;
@@ -27,7 +27,7 @@ type Tile = Rect & { item: TreemapItem };
  * slice-and-dice: blocks stay close to square, which is what keeps every
  * label and figure legible instead of collapsing into unreadable slivers.
  */
-export function ZoneTreemap({
+export const ZoneTreemap = memo(function ZoneTreemap({
   items,
   height = 320,
 }: {
@@ -49,11 +49,16 @@ export function ZoneTreemap({
     return () => observer.disconnect();
   }, []);
 
-  const ranked = items.filter((i) => i.value > 0).sort((a, b) => b.value - a.value);
-  const tiles =
-    width > 0 && ranked.length > 0
+  // The squarified layout is the expensive part; recompute it only when the
+  // data or the measured box actually changes, not on every parent re-render.
+  const tiles = useMemo(() => {
+    const ranked = items
+      .filter((i) => i.value > 0)
+      .sort((a, b) => b.value - a.value);
+    return width > 0 && ranked.length > 0
       ? squarify(ranked, { x: 0, y: 0, w: width, h: height })
       : [];
+  }, [items, width, height]);
 
   return (
     <div ref={ref} style={{ height }} className="relative w-full">
@@ -62,11 +67,11 @@ export function ZoneTreemap({
       ))}
     </div>
   );
-}
+});
 
 const GAP = 6;
 
-function Block({ item, x, y, w, h }: Tile) {
+const Block = memo(function Block({ item, x, y, w, h }: Tile) {
   const boxW = Math.max(0, w - GAP);
   const boxH = Math.max(0, h - GAP);
 
@@ -108,7 +113,7 @@ function Block({ item, x, y, w, h }: Tile) {
       )}
     </div>
   );
-}
+});
 
 /** Lay `items` (descending by value) out into `rect` as a squarified treemap. */
 function squarify(items: TreemapItem[], rect: Rect): Tile[] {

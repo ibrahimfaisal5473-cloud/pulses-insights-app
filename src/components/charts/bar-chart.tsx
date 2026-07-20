@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   Bar,
   BarChart as ReBarChart,
@@ -11,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { chart } from "@/config/chart";
+import { axisTick, chart, tooltipStyle } from "@/config/chart";
 import { formatCompact } from "@/lib/utils";
 
 export type BarSeries = {
@@ -127,7 +128,7 @@ function HighlightTick({
   );
 }
 
-export function BarChart({
+export const BarChart = memo(function BarChart({
   data,
   xKey,
   series,
@@ -181,7 +182,7 @@ export function BarChart({
         <YAxis
           domain={yDomain}
           tickFormatter={(v) => formatCompact(Number(v))}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          tick={axisTick}
           tickLine={false}
           axisLine={false}
           width={48}
@@ -193,13 +194,7 @@ export function BarChart({
             valueFormatter(Number(value), item?.payload as BarRow),
             String(name),
           ]}
-          contentStyle={{
-            background: "var(--popover)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            color: "var(--popover-foreground)",
-            fontSize: 12,
-          }}
+          contentStyle={tooltipStyle}
         />
         {series.map((s, i) => (
           <Bar
@@ -245,14 +240,14 @@ export function BarChart({
       </ReBarChart>
     </ResponsiveContainer>
   );
-}
+});
 
 /**
  * Small legend row matching the chart series. Pass `values` (keyed by series
  * key) to show each series' total alongside its name — with a stacked chart
  * the per-series magnitude is otherwise impossible to read off the bars.
  */
-export function ChartLegend({
+export const ChartLegend = memo(function ChartLegend({
   series,
   values,
 }: {
@@ -277,4 +272,4 @@ export function ChartLegend({
       ))}
     </div>
   );
-}
+});

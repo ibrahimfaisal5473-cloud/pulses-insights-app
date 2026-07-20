@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { HEATMAP_DAYS } from "@/types";
 
 export type HeatmapGridCell = {
@@ -18,7 +19,7 @@ export type HeatmapGridCell = {
  * strength). Generic over the metric — callers map their data to an
  * intensity plus a label, and pick the colour scale.
  */
-export function HeatmapGrid({
+export const HeatmapGrid = memo(function HeatmapGrid({
   cells,
   scale = "red",
   legend,
@@ -30,8 +31,13 @@ export function HeatmapGrid({
   legend: [string, string];
   ariaLabel: string;
 }) {
-  const hours = [...new Set(cells.map((c) => c.hour))].sort((a, b) => a - b);
-  const byKey = new Map(cells.map((c) => [`${c.day}:${c.hour}`, c]));
+  const { hours, byKey } = useMemo(
+    () => ({
+      hours: [...new Set(cells.map((c) => c.hour))].sort((a, b) => a - b),
+      byKey: new Map(cells.map((c) => [`${c.day}:${c.hour}`, c])),
+    }),
+    [cells],
+  );
   const base = scale === "green" ? "110,139,61" : "215,25,33";
 
   return (
@@ -71,9 +77,9 @@ export function HeatmapGrid({
       </div>
     </div>
   );
-}
+});
 
-function Row({
+const Row = memo(function Row({
   day,
   hours,
   byKey,
@@ -104,4 +110,4 @@ function Row({
       })}
     </>
   );
-}
+});

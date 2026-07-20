@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { chart } from "@/config/chart";
 
 export type RankedBar = {
@@ -19,7 +20,7 @@ export type RankedBar = {
  * Horizontal ranked bar list — used for footfall/happiness/dwell rankings.
  * Rows are pre-sorted by the caller.
  */
-export function RankedBars({
+export const RankedBars = memo(function RankedBars({
   rows,
   max,
   labelWidth = "150px",
@@ -62,4 +63,4 @@ export function RankedBars({
       ))}
     </div>
   );
-}
+});
