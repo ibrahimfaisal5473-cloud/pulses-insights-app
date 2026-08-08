@@ -474,30 +474,39 @@ function fillHeatmap<T extends object>(
  */
 export async function getWaitingTime(q: ParsedVisitorsQuery): Promise<WaitingTimeResponse> {
   const unit = truncUnit(q.granularity);
+  const bucket = localBucket(unit, "entered_at");
 
+  // GROUPING SETS asks for two aggregations in ONE pass: the per-bucket
+  // averages, and a grand total over the same rows. Two separate queries would
+  // each rebuild the whole sessionization pipeline from raw pulses -- measured
+  // at ~1.4s a time against Supabase, so the second one doubled this endpoint.
+  //
+  // The total has to come from SQL, not from averaging the buckets in JS: a
+  // bucket with three waits and one with three hundred would count equally.
+  // GROUPING() flags which row is which, rather than inferring it from a NULL
+  // bucket, so a genuine NULL could never be mistaken for the total.
   const rows = await query<Record<string, string>>(
     `${STOPS}
-     SELECT ${localBucket(unit, "entered_at")} AS bucket,
+     SELECT ${bucket} AS bucket,
+            GROUPING(${bucket}) AS is_total,
             round(avg(dwell_minutes)::numeric, 1) AS minutes
      FROM stops WHERE phase = 'waiting'
-     GROUP BY 1 ORDER BY 1`,
+     GROUP BY GROUPING SETS ((${bucket}), ())
+     ORDER BY is_total, bucket`,
     scopeParams(q),
   );
 
-  const timeseries = rows.map((r) => ({
-    time: new Date(r.bucket).toISOString(),
-    minutes: num(r.minutes),
-  }));
+  const timeseries = rows
+    .filter((r) => num(r.is_total) === 0)
+    .map((r) => ({
+      time: new Date(r.bucket).toISOString(),
+      minutes: num(r.minutes),
+    }));
 
-  const overall = await queryOne<Record<string, string>>(
-    `${STOPS}
-     SELECT round(avg(dwell_minutes)::numeric, 1) AS average
-     FROM stops WHERE phase = 'waiting'`,
-    scopeParams(q),
-  );
+  const total = rows.find((r) => num(r.is_total) === 1);
 
   return {
-    average: num(overall?.average),
+    average: num(total?.minutes),
     peak: timeseries.length > 0 ? Math.max(...timeseries.map((p) => p.minutes)) : 0,
     timeseries,
   };
