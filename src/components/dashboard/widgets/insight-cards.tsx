@@ -42,6 +42,24 @@ export function InsightCards() {
   }
 
   const zones = query.data.zones;
+
+  // Every callout below is "the zone that is most X", which does not exist
+  // when no zone recorded a detection in the selected range — a same-day
+  // filter before the first visit of the day is the ordinary way to get here.
+  if (zones.length === 0) {
+    return (
+      <Card className="lg:col-span-3">
+        <CardContent>
+          <p className="text-[13px] font-semibold">No zone activity in this range</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Insights compare zones against each other, so they need at least one
+            visit to report on. Try a wider date range.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const avgHappiness =
     zones.reduce((sum, z) => sum + z.happiness, 0) / (zones.length || 1);
   const unhappiest = [...zones].sort((a, b) => a.happiness - b.happiness)[0];

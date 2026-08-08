@@ -38,12 +38,24 @@ export function DissatisfiedSummaryBanner() {
 
             <div className="min-w-64 flex-1">
               <p className="text-sm">
-                On{" "}
-                <span className="font-medium">{formatDay(query.data.date)}</span>,{" "}
-                {query.data.dissatisfiedCount} visitors were dissatisfied —{" "}
-                {query.data.pct}% of {formatNumber(query.data.totalVisits)} visits.
-                Below is each one, anonymously, so the team can investigate on the
-                floor.
+                {/* No visits in range means there is no day under review, and
+                    the endpoint returns an empty date rather than inventing
+                    one. Formatting it would print "Invalid Date". */}
+                {query.data.date === "" ? (
+                  <>
+                    No visits recorded in this range, so there is nothing to
+                    review. Try a wider date range.
+                  </>
+                ) : (
+                  <>
+                    On{" "}
+                    <span className="font-medium">{formatDay(query.data.date)}</span>,{" "}
+                    {query.data.dissatisfiedCount} visitors were dissatisfied —{" "}
+                    {query.data.pct}% of {formatNumber(query.data.totalVisits)} visits.
+                    Below is each one, anonymously, so the team can investigate on
+                    the floor.
+                  </>
+                )}
               </p>
               <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Lock className="h-3 w-3" />
