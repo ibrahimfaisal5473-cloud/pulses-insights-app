@@ -14,56 +14,6 @@ Camera  ->  Ingestion API  ->  PostgreSQL  ->  Metrics API  ->  Dashboard
 Nothing in the data path is simulated. Every figure on every screen is computed
 from raw rows in the database.
 
-### Architecture
-
-```mermaid
-flowchart LR
-    CAM["📷 <b>Cameras</b>"]
-
-    subgraph browser["Browser"]
-        direction TB
-        UI["<b>Dashboard</b><br/>5 views"]
-        FILTERS["<b>Filters</b><br/>in the URL"]
-        HOOKS["<b>React Query</b><br/>1 query / widget"]
-        PDF["<b>PDF export</b>"]
-    end
-
-    subgraph server["Next.js 16 server"]
-        direction TB
-        INGEST["<b>POST /pulses</b><br/>batch INSERT"]
-        ROUTES["<b>GET /api/v1/*</b><br/>30 handlers"]
-        SERVICES["<b>services/live/</b><br/>aggregation SQL"]
-        POOL["<b>db/client.ts</b><br/>pg pool · TLS"]
-        AUTH["<b>Auth</b><br/>session · API key"]
-    end
-
-    subgraph supa["Supabase · PostgreSQL 17"]
-        direction TB
-        PULSE[("<b>pulse</b><br/>626,848 rows")]
-        REF[("<b>location →<br/>zone → camera</b>")]
-    end
-
-    CAM -->|"API key"| INGEST
-    UI --> FILTERS --> HOOKS
-    UI --> PDF
-    HOOKS -->|"fetch"| ROUTES
-    ROUTES --> SERVICES
-    INGEST --> POOL
-    SERVICES --> POOL
-    POOL -->|"SQL / TLS"| PULSE
-    POOL --> REF
-    PULSE -.-> REF
-    AUTH -.-> ROUTES
-    AUTH -.-> INGEST
-```
-
-Two properties are worth reading off the diagram. **`pulse` is the only table
-that grows, and the only thing stored** — visits, visitors, journeys and the
-happiness index appear nowhere in the database, because they are computed on
-every read. And **every arrow into Postgres passes through one pool**, which is
-what makes the connection count a property of the server rather than of the
-request rate.
-
 ---
 
 ## Contents
@@ -78,6 +28,9 @@ request rate.
 - [Project structure](#project-structure)
 - [Design decisions](#design-decisions)
 - [Tech stack](#tech-stack)
+- [Features](#features)
+- [AI assistance](#ai-assistance)
+- [Notes](#notes)
 
 ---
 
@@ -200,7 +153,9 @@ psql -d pulses -f db/queries/metrics.sql
 Runs the four required metrics directly against the database and prints the
 results — useful for confirming the data loaded before opening the UI.
 
-### Moving to Supabase
+---
+
+## Moving to Supabase
 
 `db/supabase.sh` moves an existing local database to Supabase. It reads the
 target URL from `.env.local` (`SUPABASE_DATABASE_URL`, or `DATABASE_URL` once
@@ -716,7 +671,7 @@ cascading or orphaning.
 
 | Layer | Technology |
 |---|---|
-| Database | PostgreSQL 18 |
+| Database | PostgreSQL 17 on Supabase (any PostgreSQL 14+ works) |
 | Driver | node-postgres (`pg`) with connection pooling |
 | Backend | Next.js 16 Route Handlers (Node runtime) |
 | Frontend | React 19, TypeScript, Tailwind CSS v4, shadcn/ui |
