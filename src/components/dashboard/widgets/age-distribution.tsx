@@ -4,7 +4,7 @@ import { AGE_BANDS } from "@/types";
 import { useAgeDistribution, useAgeHappiness } from "@/hooks/use-visitors";
 import { DonutChart } from "@/components/charts/donut-chart";
 import { chart } from "@/config/chart";
-import { formatCompact } from "@/lib/utils";
+import { formatCompact, weightedMean } from "@/lib/utils";
 import { WidgetCard } from "../widget-card";
 import { useLens } from "../lens";
 
@@ -55,8 +55,14 @@ function AgeHappinessCard() {
       contentHeight={192}
     >
       {(scores) => {
-        const avg =
-          AGE_BANDS.reduce((sum, band) => sum + scores[band], 0) / AGE_BANDS.length;
+        // Weighted by visitor share, exactly as the slice areas are. Bands with
+        // no visitors weigh nothing rather than counting as a zero score.
+        const avg = weightedMean(
+          AGE_BANDS.map((band) => ({
+            score: scores[band],
+            weight: counts.data?.[band] ?? 0,
+          })),
+        );
 
         return (
           <DonutChart

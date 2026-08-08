@@ -3,7 +3,7 @@
 import { useGenderDistribution, useGenderHappiness } from "@/hooks/use-visitors";
 import { DonutChart } from "@/components/charts/donut-chart";
 import { chart } from "@/config/chart";
-import { formatCompact } from "@/lib/utils";
+import { formatCompact, weightedMean } from "@/lib/utils";
 import { WidgetCard } from "../widget-card";
 import { useLens } from "../lens";
 
@@ -57,7 +57,14 @@ function GenderHappinessCard() {
         // the counts request is still in flight.
         const male = counts.data?.male ?? 1;
         const female = counts.data?.female ?? 1;
-        const avg = (scores.male + scores.female) / 2;
+
+        // Weighted by visitor share for the same reason the slices are: a plain
+        // /2 would let a gender with no visitors contribute a zero and halve
+        // the headline figure.
+        const avg = weightedMean([
+          { score: scores.male, weight: counts.data?.male ?? 0 },
+          { score: scores.female, weight: counts.data?.female ?? 0 },
+        ]);
 
         return (
           <DonutChart
