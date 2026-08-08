@@ -39,7 +39,7 @@ from raw rows in the database.
 ### Prerequisites
 
 - **Node.js 20+**
-- **PostgreSQL 14+** (developed against 18.4)
+- **PostgreSQL 14+** (runs on Supabase PostgreSQL 17; developed against 18.4 locally)
 
 ### 1. Provide a PostgreSQL database
 
@@ -221,8 +221,13 @@ change rather than a data migration, and every historical figure updates for
 free.
 
 The cost is repeated work per request. Materialising a `visit` table becomes
-correct once that work is measured to be too slow. At current volume the full
-sessionization query runs in **~180 ms over 630,000 rows**, so it isn't yet.
+correct once that work is measured to be too slow — and on Supabase it now is:
+the same sessionization that took **~180 ms on a local database takes ~1.4 s**,
+paid again by every widget on the page. See [Performance](#performance).
+
+The design stands; the threshold was crossed. Storing derived values is still a
+cost, so the answer is to cache one computation rather than to scatter derived
+columns through the schema — but it is no longer free to keep recomputing.
 
 ### Layered authentication
 
@@ -548,37 +553,100 @@ A framework-agnostic summary API, independent of the dashboard's widget shapes:
 
 ## Performance
 
-Measured locally on PostgreSQL 18.4 against the seeded dataset.
+Measured end-to-end against the **Supabase** database the app actually runs on
+(PostgreSQL 17, 2 vCPU), through a production build, on the seeded dataset.
+Benchmark rows were tagged and deleted afterwards.
+
+The single most important number is the one that governs everything else:
+
+> **A round trip to Supabase costs ~165 ms**, measured at 165.1–165.9 ms across
+> repeated `SELECT 1`. It is propagation delay, not work. Every query pays it
+> once, whatever else it does.
 
 ### Ingestion
 
-| Strategy | Throughput |
-|---|---|
-| One `INSERT` per row, autocommit | ~10,400 rows/sec |
-| One `INSERT` per row, single transaction | ~15,800 rows/sec |
-| Multi-row `INSERT`, 500 per statement | ~66,400 rows/sec |
-| `COPY` (bulk load) | ~90,900 rows/sec |
-| **End-to-end over HTTP** (batches of 500) | **~18,800 pulses/sec** |
+Sustained rate is the requirement, so it is what was tested — offer a fixed
+arrival rate and see whether a backlog forms.
 
-Against the 1,000 pulses/sec target that is roughly **19× headroom** through the
-full API, and the database itself is nowhere near saturated. The jump between
-the first two rows is the cost of one disk flush per transaction; the jump to
-the third is per-statement round trips.
+| Offered | Duration | Accepted | Errors | Achieved | Backlog |
+|---|---|---|---|---|---|
+| 1,200/sec | 30 s | 36,000 | 0 | 1,196/sec | none |
+| 5,000/sec | 10 s | 50,000 | 0 | 4,873/sec | none |
+
+Both held, draining 0.36 s after the offer window closed. **Sustained ≥5,000
+pulses/sec through the full API, 5× the 1,000/sec target.**
+
+Burst throughput depends entirely on how callers batch:
+
+| Batch size | Concurrent senders | Throughput | p50 |
+|---|---|---|---|
+| 100 | 1 | **286 pulses/sec** | 351 ms |
+| 500 | 1 | 1,229 pulses/sec | 365 ms |
+| 500 | 8 | 9,450 pulses/sec | 400 ms |
+| 1000 | 8 | **15,336 pulses/sec** | 453 ms |
+
+That first row is the one worth reading twice. Per-request latency is ~350–450
+ms regardless of batch size, because it is dominated by the two round trips to
+Supabase — so a single sequential sender manages about three requests/sec no
+matter how fast the server is. **A lone camera posting 100 detections per
+request achieves 286/sec and misses the target**, on a system capable of 15,000.
+
+Throughput here is a property of batching and concurrency, not of server speed.
+The target is met provided callers batch at ≥500 with more than one request in
+flight. On a local database this precondition did not exist, because there was
+no round trip worth amortising.
 
 ### Queries
 
-Full sessionization across 630,000 rows: **~180 ms**. This is the measurement
-that justifies computing visits on read rather than storing them.
+The read path is where the move to a small managed instance is felt. Building
+up one representative query over a 30-day window (204,960 detections):
+
+| Stage | Cumulative |
+|---|---|
+| Indexed range scan | 196 ms |
+| **+ scope** — joins, then one gender and age resolved per face | 659 ms |
+| **+ sessionization** — sort, four stacked window functions, grouping | **1,410 ms** |
+
+Endpoint medians run from 0.17 s (`/locations`, one trivial query — effectively
+just the round trip) to ~1.6 s for the journey and dissatisfied endpoints.
+
+Widgets fetch independently and in parallel, but the instance has 2 vCPUs and
+allows at most one extra worker per query (`max_parallel_workers_per_gather` is
+1), so five concurrent widgets barely overlap: **4.5 s wall against 6.1 s run
+one after another**, a speed-up of only 1.3×. Parallel fetching turns into
+queueing at the database.
+
+Two plausible culprits were measured and ruled out. `work_mem` is 2.1 MB and the
+main sort needs 15.5 MB, so it spills to disk — but raising it to 64 MB removed
+the spill and changed the total by nothing (1,454 ms vs 1,426 ms). Disk I/O is
+not implicated either: `shared_buffers` is 224 MB against a 117 MB database, so
+it is fully cached. The cost is CPU, spent re-deriving the same visits on every
+request.
+
+### The optimization this argues for
+
+Nearly every endpoint rebuilds the identical `stops`/`visits` pipeline from raw
+pulses. Materialising it — a refreshed materialized view, or the `visit` table
+described under [Design decisions](#design-decisions) — would turn a 1.4 s
+computation into a scan of a few thousand pre-computed rows.
+
+The README has said all along that materialising becomes correct "once that work
+is measured to be too slow". At ~180 ms on a local database it was not. At 1.4 s
+per widget on a shared 2-vCPU instance, it now is. That is a measurement
+changing a decision, which is what the measurement was for.
 
 ### Scaling beyond this
 
-At sustained 1,000/sec — 86 million rows/day — the current schema needs work:
-range-partitioning `pulse` by day, BRIN instead of B-tree indexes on the
-time column, and pre-aggregated rollups so the dashboard never scans raw rows.
+The section above is about read latency at today's volume. This one is about
+what breaks if the *write* rate is ever sustained for real: 1,000/sec is 86
+million rows/day, and at that size `pulse` wants range-partitioning by day and
+BRIN instead of B-tree indexes on the time column.
 
-That work is written and benchmarked but deliberately **not** applied, since it
-is unnecessary at present volume and would obscure the schema. It is kept in
-`db/_later/` with its measurements, to be applied when load justifies it.
+That work is written and benchmarked but deliberately **not** applied — the
+table holds 626,848 rows, so partitioning would obscure the schema and buy
+nothing. It is kept in `db/_later/` with its measurements, to be applied when
+volume justifies it. Materialising the read path, by contrast, is justified
+now; the two are separate decisions with separate triggers.
 
 ---
 
