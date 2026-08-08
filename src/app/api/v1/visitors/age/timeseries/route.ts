@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireApiSession } from "@/lib/auth/guard";
-import { mockLatency } from "@/lib/mock/generator";
 import { parseVisitorsQuery } from "@/lib/services/params";
-import { getAgeTimeseries } from "@/lib/services/visitors";
+import { getAgeTimeseries } from "@/lib/services/live/visitors";
 
-/** GET /api/v1/visitors/age/timeseries — daily visitor counts by age band. */
+/** GET /api/v1/visitors/age/timeseries — visitors over time by age band. Reads live from PostgreSQL. */
 export async function GET(request: NextRequest) {
   const denied = await requireApiSession();
   if (denied) return denied;
@@ -14,6 +13,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  await mockLatency();
-  return NextResponse.json(getAgeTimeseries(parsed.query));
+  try {
+    return NextResponse.json(await getAgeTimeseries(parsed.query));
+  } catch (err) {
+    console.error("[api] /visitors/age/timeseries", err);
+    return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
+  }
 }

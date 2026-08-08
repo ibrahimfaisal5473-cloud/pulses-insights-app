@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireApiSession } from "@/lib/auth/guard";
-import { mockLatency } from "@/lib/mock/generator";
 import { parseVisitorsQuery } from "@/lib/services/params";
-import { getZonesTimeseries } from "@/lib/services/zones";
+import { getZonesTimeseries } from "@/lib/services/live/zones";
 
-/** GET /api/v1/zones/timeseries — daily visitor counts per zone. */
+/** GET /api/v1/zones/timeseries — visitors per zone over time. Reads live from PostgreSQL. */
 export async function GET(request: NextRequest) {
   const denied = await requireApiSession();
   if (denied) return denied;
@@ -14,6 +13,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  await mockLatency();
-  return NextResponse.json(getZonesTimeseries(parsed.query));
+  try {
+    return NextResponse.json(await getZonesTimeseries(parsed.query));
+  } catch (err) {
+    console.error("[api] /zones/timeseries", err);
+    return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
+  }
 }

@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireApiSession } from "@/lib/auth/guard";
-import { mockLatency } from "@/lib/mock/generator";
 import { parseVisitorsQuery } from "@/lib/services/params";
-import { getCommonJourneys } from "@/lib/services/journeys";
+import { getCommonJourneys } from "@/lib/services/live/journeys";
 
-/** GET /api/v1/journey/common — most common end-to-end journeys. */
+/** GET /api/v1/journey/common — most frequently walked paths. Reads live from PostgreSQL. */
 export async function GET(request: NextRequest) {
   const denied = await requireApiSession();
   if (denied) return denied;
@@ -14,6 +13,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  await mockLatency();
-  return NextResponse.json(getCommonJourneys(parsed.query));
+  try {
+    return NextResponse.json(await getCommonJourneys(parsed.query));
+  } catch (err) {
+    console.error("[api] /journey/common", err);
+    return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
+  }
 }

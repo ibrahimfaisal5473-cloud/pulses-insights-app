@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireApiSession } from "@/lib/auth/guard";
-import { mockLatency } from "@/lib/mock/generator";
 import { parseVisitorsQuery } from "@/lib/services/params";
-import { getHappinessTimeseries } from "@/lib/services/visitors";
+import { getHappinessTimeseries } from "@/lib/services/live/visitors";
 
-/** GET /api/v1/visitors/happiness/timeseries — happiness index over time. */
+/** GET /api/v1/visitors/happiness/timeseries — happiness index over time. Reads live from PostgreSQL. */
 export async function GET(request: NextRequest) {
   const denied = await requireApiSession();
   if (denied) return denied;
@@ -14,6 +13,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  await mockLatency();
-  return NextResponse.json(getHappinessTimeseries(parsed.query));
+  try {
+    return NextResponse.json(await getHappinessTimeseries(parsed.query));
+  } catch (err) {
+    console.error("[api] /visitors/happiness/timeseries", err);
+    return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
+  }
 }

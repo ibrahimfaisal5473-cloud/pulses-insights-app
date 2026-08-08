@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireApiSession } from "@/lib/auth/guard";
-import { mockLatency } from "@/lib/mock/generator";
 import { parseVisitorsQuery } from "@/lib/services/params";
-import { getVisitorsHeatmap } from "@/lib/services/visitors";
+import { getVisitorsHeatmap } from "@/lib/services/live/visitors";
 
-/** GET /api/v1/visitors/heatmap — visitor activity by day and hour. */
+/** GET /api/v1/visitors/heatmap — visit arrivals by weekday and hour. Reads live from PostgreSQL. */
 export async function GET(request: NextRequest) {
   const denied = await requireApiSession();
   if (denied) return denied;
@@ -14,6 +13,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  await mockLatency();
-  return NextResponse.json(getVisitorsHeatmap(parsed.query));
+  try {
+    return NextResponse.json(await getVisitorsHeatmap(parsed.query));
+  } catch (err) {
+    console.error("[api] /visitors/heatmap", err);
+    return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
+  }
 }

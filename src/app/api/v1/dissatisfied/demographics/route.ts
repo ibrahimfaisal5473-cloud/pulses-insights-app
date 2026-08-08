@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireApiSession } from "@/lib/auth/guard";
-import { mockLatency } from "@/lib/mock/generator";
 import { parseVisitorsQuery } from "@/lib/services/params";
-import { getDissatisfiedDemographics } from "@/lib/services/dissatisfied";
+import { getDissatisfiedDemographics } from "@/lib/services/live/dissatisfied";
 
-/** GET /api/v1/dissatisfied/demographics — dissatisfied visitors by gender and age. */
+/** GET /api/v1/dissatisfied/demographics — who the dissatisfied visitors are. Reads live from PostgreSQL. */
 export async function GET(request: NextRequest) {
   const denied = await requireApiSession();
   if (denied) return denied;
@@ -14,6 +13,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  await mockLatency();
-  return NextResponse.json(getDissatisfiedDemographics(parsed.query));
+  try {
+    return NextResponse.json(await getDissatisfiedDemographics(parsed.query));
+  } catch (err) {
+    console.error("[api] /dissatisfied/demographics", err);
+    return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
+  }
 }

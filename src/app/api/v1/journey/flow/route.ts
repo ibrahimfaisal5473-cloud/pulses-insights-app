@@ -6,14 +6,13 @@ import {
   type JourneyTimeOfDay,
 } from "@/types";
 import { requireApiSession } from "@/lib/auth/guard";
-import { mockLatency } from "@/lib/mock/generator";
 import { parseVisitorsQuery } from "@/lib/services/params";
-import { getJourneyFlow } from "@/lib/services/journeys";
+import { getJourneyFlow } from "@/lib/services/live/journeys";
 
 /**
  * GET /api/v1/journey/flow — visitor flow between journey phases (`groupBy=type`)
  * or between zones stop by stop (`groupBy=zone`), optionally sliced by
- * `timeOfDay` (all | morning | afternoon | evening).
+ * `timeOfDay` (all | morning | afternoon | evening). Reads live from PostgreSQL.
  */
 export async function GET(request: NextRequest) {
   const denied = await requireApiSession();
@@ -40,11 +39,15 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  await mockLatency();
-  return NextResponse.json(
-    getJourneyFlow(parsed.query, {
-      groupBy: groupBy as JourneyGroupBy,
-      timeOfDay: timeOfDay as JourneyTimeOfDay,
-    }),
-  );
+  try {
+    return NextResponse.json(
+      await getJourneyFlow(parsed.query, {
+        groupBy: groupBy as JourneyGroupBy,
+        timeOfDay: timeOfDay as JourneyTimeOfDay,
+      }),
+    );
+  } catch (err) {
+    console.error("[api] /journey/flow", err);
+    return NextResponse.json({ error: "Failed to load flow" }, { status: 500 });
+  }
 }

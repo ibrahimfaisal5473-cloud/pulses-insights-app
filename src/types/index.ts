@@ -41,6 +41,21 @@ export const JOURNEY_PHASE_IDS = [
 
 export type JourneyPhaseId = (typeof JOURNEY_PHASE_IDS)[number];
 
+/** Display names for the phases above, in visit order. */
+export const JOURNEY_PHASES: { id: JourneyPhaseId; name: string }[] = [
+  { id: "arrival", name: "Arrival" },
+  { id: "registration", name: "Registration" },
+  { id: "waiting", name: "Waiting" },
+  { id: "service", name: "Service" },
+  { id: "activity", name: "Activity" },
+];
+
+/**
+ * Visit length past which the experience is considered degraded.
+ * Drives the journey stat card and the threshold tracker, so both agree.
+ */
+export const EXPERIENCE_THRESHOLD_MINUTES = 30;
+
 export type Zone = {
   id: string;
   name: string;

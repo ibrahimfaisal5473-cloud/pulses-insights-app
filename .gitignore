@@ -46,3 +46,6 @@ next-env.d.ts
 
 # local Claude Code dev-server config
 /.claude/launch.json
+
+# local postgres artifacts
+*.pgdata

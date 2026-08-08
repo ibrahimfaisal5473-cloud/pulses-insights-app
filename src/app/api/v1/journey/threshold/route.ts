@@ -1,13 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireApiSession } from "@/lib/auth/guard";
-import { mockLatency } from "@/lib/mock/generator";
 import { parseVisitorsQuery } from "@/lib/services/params";
-import { getThresholdTracker } from "@/lib/services/journeys";
+import { getThresholdTracker } from "@/lib/services/live/journeys";
 
-/**
- * GET /api/v1/journey/threshold — daily share of visits that ran past the
- * experience threshold.
- */
+/** GET /api/v1/journey/threshold — share of visits exceeding the experience threshold. Reads live from PostgreSQL. */
 export async function GET(request: NextRequest) {
   const denied = await requireApiSession();
   if (denied) return denied;
@@ -17,6 +13,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  await mockLatency();
-  return NextResponse.json(getThresholdTracker(parsed.query));
+  try {
+    return NextResponse.json(await getThresholdTracker(parsed.query));
+  } catch (err) {
+    console.error("[api] /journey/threshold", err);
+    return NextResponse.json({ error: "Failed to load data" }, { status: 500 });
+  }
 }
