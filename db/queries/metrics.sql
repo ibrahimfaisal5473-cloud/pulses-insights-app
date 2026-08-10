@@ -187,7 +187,13 @@ WITH ordered AS (
     FROM pulse p
     JOIN camera c USING (camera_id)
     JOIN zone   z USING (zone_id)
-    WHERE p.face_id = 'FACE-DXB-00001'
+    -- Chosen at runtime rather than hardcoded: a literal face_id goes stale the
+    -- moment the data is regenerated, and this query then returns zero rows
+    -- while still looking like it ran. The most-seen visitor also has the
+    -- richest path, which is the point of showing one.
+    WHERE p.face_id = (
+        SELECT face_id FROM pulse GROUP BY face_id ORDER BY count(*) DESC LIMIT 1
+    )
 ),
 visits AS (
     SELECT *, SUM(CASE WHEN prev_seen IS NULL
