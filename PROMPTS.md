@@ -292,3 +292,30 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 > Update the README performance section with the real Supabase numbers instead of the old local benchmark. Also check the runnable metrics SQL still works end to end, since we'll be demonstrating the derived metrics from it.
 
 **Outcome:** Replaced the local figures with the measured Supabase results, including the ~165 ms round trip that governs everything else and the batching precondition attached to the throughput claim. Corrected two statements elsewhere in the README that the new numbers contradicted — the "compute on read" rationale had cited the old ~180 ms sessionization to argue materialising was not yet warranted, which has now flipped. Also fixed `db/queries/metrics.sql`, where the single-visitor journey example matched a hardcoded `face_id` that no longer existed and silently returned zero rows; it now selects a visitor at runtime so it cannot go stale again.
+
+---
+
+## 2026-08-11 — Seed detection rates
+
+**Prompt:**
+> Inspect the pulse generator and increase the detection rates so each person generates pulses more frequently. Keep the rates realistic and preserve the existing zone differences. Don't change the database or backend logic — only update the seed generation rates.
+
+**Outcome:** The Entrance was emitting about **two** detections for an entire walk-through, because a 0.5–1.5 minute pass at 2.0 detections/minute rounds to two — a camera that notices someone twice and loses interest. Scaled all seven zone rates by 10, which preserves the relative weighting exactly while moving the absolute cadence into a plausible range: roughly every 3s at the Entrance, every 50s at a desk. Verified with a controlled run over the same three days: 11,235 → 105,637 pulses, a 9.4× increase. Also corrected the code comments after measuring — the quoted figures are *average* intervals, and because offsets are scattered at uniform random points across each dwell the observed medians run about a third shorter.
+
+---
+
+## 2026-08-11 — Pre-calculated statistics and a background job
+
+**Prompt:**
+> The dashboard should read pre-calculated values rather than recomputing everything from raw pulses on every request. Aggregate at a minimum granularity of one hour, calculate the statistics in a background job, and keep raw pulses for a reasonable retention period before purging them. Keep the current Next.js + Supabase architecture and the existing business logic. Update the database, the background processing, the API queries and the frontend connections as needed.
+
+**Outcome:** Added four derived tables and a background job, without touching the `location → zone → camera → pulse` hierarchy. The design point worth recording is that **one hour of granularity is not sufficient on its own**: a distinct count is not additive, so somebody seen at 09:00 and again at 14:00 would be counted twice if unique visitors came from hourly buckets. So people are counted from visitor-grain tables (`person`, `visit`, `visit_stop` — 2.5k/18.5k/63.5k rows) where `DISTINCT` stays exact, and only additive sums come from `pulse_hourly` at the agreed one-hour grain. `refresh_rollups()` is incremental **by face rather than by time**, because a late pulse can extend a visit that began before the watermark; rebuilding whole people is cheap and leaves no half-built visits, and makes the job idempotent. Scheduling uses `pg_cron` inside Supabase, so no worker process was introduced. Retention (`purge_old_pulses(90)`) ships **disabled**, since deleting raw pulses is the only irreversible step.
+
+---
+
+## 2026-08-11 — Reading the dashboard from the rollups
+
+**Prompt:**
+> Repoint the API queries at the pre-calculated tables so the dashboard stops recalculating from raw pulses, and make the Overview page fast too. Keep the business logic and the response shapes exactly as they are.
+
+**Outcome:** The shared `STOPS` fragment kept exposing relations named `stops` and `visits` with identical columns, so 15 of the query functions needed no edit at all; the Overview widgets were converted individually. **Overview went from 4.54 s to 0.47 s concurrent**, and most endpoints now sit near the 165 ms network floor. Two findings came out of verifying rather than assuming: a visitor count that appeared to have regressed turned out to be the rolling 30-day window sliding forward, confirmed by querying three definitions directly and getting the same answer; and footfall rose from 14,422 to 18,739 because the **old** query lagged `zone_id` partitioned by `face_id` alone, so an arrival was missed whenever somebody's last zone yesterday matched their first zone today — footfall had been under-reported by about 23%, and the new figure is the correct one.

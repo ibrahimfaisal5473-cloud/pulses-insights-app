@@ -20,6 +20,7 @@ from raw rows in the database.
 
 - [Quick start](#quick-start)
 - [Moving to Supabase](#moving-to-supabase)
+- [Pre-calculated statistics](#pre-calculated-statistics)
 - [System architecture](#system-architecture)
 - [Database schema](#database-schema)
 - [Derived metrics](#derived-metrics-the-backend-logic)
@@ -204,30 +205,71 @@ a single malformed reading never costs the other 99.
 
 Dashboard widgets each call their own endpoint. Route handlers stay thin: check
 the session, parse and validate query parameters, call a service function,
-return JSON. All aggregation logic lives in `src/lib/services/live/`.
+return JSON. All aggregation logic lives in `src/lib/services/live/`, and it
+reads the pre-calculated tables rather than raw pulses.
 
 Every widget fetching independently means one slow or failing endpoint degrades
 one card rather than the page.
 
-### Nothing derived is stored
+### Pre-calculated statistics
 
-`pulse` is the single source of truth. Visitors, visits, journeys, demographics
-and the happiness index are **computed on read**, never persisted.
+A background job sessionizes raw pulses into four derived tables, on a
+one-minute schedule inside the database itself.
 
-The trade-off is deliberate. Storing a derived value means recording the same
-fact twice, and two copies eventually disagree. Computing on read means changing
-a rule — the session gap, the happiness weights, the age bands — is a code
-change rather than a data migration, and every historical figure updates for
-free.
+| Table | Grain | Rows | Answers |
+|---|---|---|---|
+| `person` | one per face | 2,562 | resolved gender and age band |
+| `visit` | one per session | 18,568 | visits, unique visitors, dwell |
+| `visit_stop` | one per zone arrival | 63,552 | journeys, footfall, per-zone sentiment |
+| `pulse_hourly` | hour × zone × gender × age | 23,239 | additive detection and emotion totals |
 
-The cost is repeated work per request. Materialising a `visit` table becomes
-correct once that work is measured to be too slow — and on Supabase it now is:
-the same sessionization that took **~180 ms on a local database takes ~1.4 s**,
-paid again by every widget on the page. See [Performance](#performance).
+**Two layers, not one — and this is the part worth understanding.** Hourly
+buckets alone cannot answer "how many unique visitors". A distinct count is not
+additive: somebody seen at 09:00 and again at 14:00 is one visitor but two rows,
+and summing the buckets counts them twice. So anything counting *people* reads
+the visitor-grain tables, where one row is one real visit and `DISTINCT` stays
+exact; only sums and counts come from the hourly layer, where adding hours
+together is genuinely correct.
 
-The design stands; the threshold was crossed. Storing derived values is still a
-cost, so the answer is to cache one computation rather than to scatter derived
-columns through the schema — but it is no longer free to keep recomputing.
+`refresh_rollups()` is incremental **by face, not by time**. A late pulse can
+extend a visit that began before the watermark, so processing "rows newer than
+X" would leave half-built visits behind. Rebuilding whole people instead is
+cheap and always correct, and it makes the job idempotent — safe to re-run, and
+safe after a crash.
+
+Scheduling is `pg_cron`, running inside Supabase. No worker process, no external
+scheduler. The job costs **0 ms when no pulses have arrived**, and the dashboard
+is at most one minute behind live ingestion — the one deliberate trade.
+
+Raw pulses are retained for **90 days** by `purge_old_pulses()`, which ships
+**disabled**: derived statistics survive a purge, so what the retention window
+trades away is only the ability to re-derive that period.
+
+### Nothing derived is stored *in the core schema*
+
+`pulse` remains the single source of truth. Visitors, visits, journeys,
+demographics and the happiness index are still not facts anyone writes — they
+are **derived from raw detections**, and the rules that derive them live in one
+place.
+
+What changed is *when*. Until the database moved to Supabase, every widget
+re-derived them on each request. That was affordable at ~180 ms on a local
+machine and stopped being affordable at ~1.4 s per widget on a shared 2-vCPU
+instance. So the same computation now runs **once, in a background job**, into
+a set of derived tables the dashboard reads instead.
+
+The important part is what did **not** happen: no derived columns were scattered
+through `location`, `zone`, `camera` or `pulse`. The core hierarchy is exactly
+what it was. The derived tables sit beside it and hold no fact that is not
+already implied by `pulse` — drop all of them and one function call rebuilds
+them in about twelve seconds. They are a cache with a schema, not new entities,
+which is why the ERD is unchanged.
+
+Changing a rule — the session gap, the happiness weights, the age bands — is
+therefore still a code change rather than a data migration. It just needs a
+rebuild afterwards instead of taking effect on the next page load.
+
+See [Pre-calculated statistics](#pre-calculated-statistics).
 
 ### Layered authentication
 
@@ -563,7 +605,7 @@ The single most important number is the one that governs everything else:
 > repeated `SELECT 1`. It is propagation delay, not work. Every query pays it
 > once, whatever else it does.
 
-### Ingestion
+### Ingestion throughput
 
 Sustained rate is the requirement, so it is what was tested — offer a fixed
 arrival rate and see whether a backlog forms.
@@ -598,8 +640,11 @@ no round trip worth amortising.
 
 ### Queries
 
-The read path is where the move to a small managed instance is felt. Building
-up one representative query over a 30-day window (204,960 detections):
+The read path was where the move to a small managed instance was felt, and it is
+what the background job was built to fix.
+
+**Before pre-calculation**, one representative query over a 30-day window
+(204,960 detections) built up like this:
 
 | Stage | Cumulative |
 |---|---|
@@ -607,33 +652,31 @@ up one representative query over a 30-day window (204,960 detections):
 | **+ scope** — joins, then one gender and age resolved per face | 659 ms |
 | **+ sessionization** — sort, four stacked window functions, grouping | **1,410 ms** |
 
-Endpoint medians run from 0.17 s (`/locations`, one trivial query — effectively
-just the round trip) to ~1.6 s for the journey and dissatisfied endpoints.
+Two plausible culprits were measured and ruled out before touching the design:
+`work_mem` is 2.1 MB against a sort needing 15.5 MB, but raising it to 64 MB
+removed the spill and changed the total by nothing (1,454 ms vs 1,426 ms); and
+the database is fully cached, `shared_buffers` 224 MB against 117 MB of data.
+The cost was CPU, spent re-deriving the same visits on every single request.
 
-Widgets fetch independently and in parallel, but the instance has 2 vCPUs and
-allows at most one extra worker per query (`max_parallel_workers_per_gather` is
-1), so five concurrent widgets barely overlap: **4.5 s wall against 6.1 s run
-one after another**, a speed-up of only 1.3×. Parallel fetching turns into
-queueing at the database.
+**After**, the same work is a scan of pre-built rows:
 
-Two plausible culprits were measured and ruled out. `work_mem` is 2.1 MB and the
-main sort needs 15.5 MB, so it spills to disk — but raising it to 64 MB removed
-the spill and changed the total by nothing (1,454 ms vs 1,426 ms). Disk I/O is
-not implicated either: `shared_buffers` is 224 MB against a 117 MB database, so
-it is fully cached. The cost is CPU, spent re-deriving the same visits on every
-request.
+| | Before | After |
+|---|---|---|
+| `visitors/waiting-time` | 3.22 s | **0.20 s** |
+| `journey/flow` | 2.30 s | **0.44 s** |
+| `zones` | 1.56 s | **0.28 s** |
+| `visitors/counts` | 0.99 s | **0.21 s** |
+| **Overview page, concurrent** | **4.54 s** | **0.47 s** |
 
-### The optimization this argues for
+Most endpoints now sit at ~0.2 s, which is the 165 ms round trip plus a little.
+The remaining slow ones are the standalone `/v1/metrics/*` routes and two
+demographic timeseries, which still read raw pulses and are not on the critical
+path of any dashboard page.
 
-Nearly every endpoint rebuilds the identical `stops`/`visits` pipeline from raw
-pulses. Materialising it — a refreshed materialized view, or the `visit` table
-described under [Design decisions](#design-decisions) — would turn a 1.4 s
-computation into a scan of a few thousand pre-computed rows.
-
-The README has said all along that materialising becomes correct "once that work
-is measured to be too slow". At ~180 ms on a local database it was not. At 1.4 s
-per widget on a shared 2-vCPU instance, it now is. That is a measurement
-changing a decision, which is what the measurement was for.
+The gain also holds as the raw table grows: `visit` and `visit_stop` scale with
+*visits*, not detections, so ten times more detections per person produces ten
+times more readings per stop and no more stops. Read speed stays flat while
+`pulse` grows.
 
 ### Scaling beyond this
 
@@ -645,8 +688,8 @@ BRIN instead of B-tree indexes on the time column.
 That work is written and benchmarked but deliberately **not** applied — the
 table holds 626,848 rows, so partitioning would obscure the schema and buy
 nothing. It is kept in `db/_later/` with its measurements, to be applied when
-volume justifies it. Materialising the read path, by contrast, is justified
-now; the two are separate decisions with separate triggers.
+volume justifies it. Materialising the read path, by contrast, was justified and
+has been done; the two are separate decisions with separate triggers.
 
 ---
 
@@ -659,7 +702,10 @@ db/
 │   ├── 002_zone.sql
 │   ├── 003_camera.sql
 │   ├── 004_pulse.sql
-│   └── 005_zone_phase.sql
+│   ├── 005_zone_phase.sql
+│   ├── 006_rollups.sql   # Derived tables for pre-calculated statistics
+│   ├── 007_refresh_rollups.sql # The background job + retention purge
+│   └── 008_schedule_jobs.sql   # pg_cron registration
 ├── seed/
 │   ├── 001_reference.sql # Office layout
 │   └── generate_pulses.py# Visitor movement model
@@ -687,6 +733,8 @@ src/
 │   ├── db/               # Connection pool, ingestion, standalone metrics
 │   ├── export/           # PDF report generation
 │   └── services/live/    # SQL aggregation — all backend logic
+│       ├── stops.ts      # Reads pre-calculated visits/stops
+│       └── rollup.ts     # Reads the hourly aggregate layer
 ├── types/                # Shared interfaces and constants
 └── proxy.ts              # Edge auth check
 ```
@@ -740,6 +788,7 @@ cascading or orphaning.
 | Layer | Technology |
 |---|---|
 | Database | PostgreSQL 17 on Supabase (any PostgreSQL 14+ works) |
+| Background jobs | pg_cron, in-database — no worker process |
 | Driver | node-postgres (`pg`) with connection pooling |
 | Backend | Next.js 16 Route Handlers (Node runtime) |
 | Frontend | React 19, TypeScript, Tailwind CSS v4, shadcn/ui |
