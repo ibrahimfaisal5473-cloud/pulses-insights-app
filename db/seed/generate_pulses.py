@@ -44,14 +44,33 @@ random.seed(SEED)
 # --- how often a camera registers a face, per minute of dwell ----------------
 # Busy thoroughfares catch a face constantly; someone at a desk is facing away
 # most of the time. This ratio is what stops the workspace swamping the dataset.
+#
+# Rates are per MINUTE of dwell. The trailing comment on each line is the same
+# figure as an AVERAGE cadence, which is the way to sanity-check it: a real
+# detection pipeline emits a recognised face every few seconds while someone is
+# squarely in view, and only intermittently once they turn away from the lens.
+#
+# Detections are scattered at uniform random offsets across the dwell rather
+# than spaced evenly, so the observed MEDIAN gap runs roughly a third shorter
+# than the average quoted here — bursts of two or three close together, then a
+# longer quiet stretch. That is the intended shape; real cameras are not
+# metronomes.
+#
+# The previous values were an order of magnitude too sparse to be plausible.
+# At 2.0/min the Entrance — where a pass lasts 0.5-1.5 minutes — produced about
+# TWO detections for a whole walk-through, implying a camera that noticed a
+# person twice and then lost interest. Every rate below is the old one scaled
+# by 10, so the relative weighting between zones is unchanged and the workspace
+# still cannot swamp the dataset; only the absolute cadence has moved into a
+# range a real camera would produce.
 DETECTION_RATE = {
-    "ENTRANCE":  2.0,
-    "RECEPTION": 1.4,
-    "WAITING":   0.7,
-    "MEETING":   0.25,
-    "WORKSPACE": 0.12,
-    "CAFE":      0.5,
-    "HELPDESK":  0.9,
+    "ENTRANCE":  20.0,   # every 3s   - walking straight past the lens
+    "RECEPTION": 14.0,   # every 4s   - standing at a desk, facing forward
+    "WAITING":    7.0,   # every 9s   - seated, looking around
+    "MEETING":    2.5,   # every 24s  - seated, often turned to other people
+    "WORKSPACE":  1.2,   # every 50s  - at a desk, mostly facing a screen
+    "CAFE":       5.0,   # every 12s  - moving around, frequently in view
+    "HELPDESK":   9.0,   # every 7s   - facing an agent across a counter
 }
 
 # --- emotional tone of each area --------------------------------------------
