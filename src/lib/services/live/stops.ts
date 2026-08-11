@@ -1,72 +1,60 @@
 import "server-only";
-import { HAPPINESS, SCOPE, SESSION_GAP_MINUTES } from "./scope";
 
 /**
- * Sessionized visits and per-zone stops — the foundation for every journey,
- * dwell, and sentiment metric.
+ * Sessionized visits and per-zone stops — now READ from the pre-calculated
+ * tables rather than derived from raw pulses on every request.
  *
- * Two applications of gaps-and-islands, stacked:
+ * WHAT MOVED, AND WHAT DID NOT
+ * The logic itself is unchanged: the same two applications of gaps-and-islands,
+ * the same 30-minute session rule, the same sample-weighted happiness. All of
+ * it now lives in `refresh_rollups()` (migration 007) and runs on a one-minute
+ * background schedule, writing `visit` and `visit_stop`. This module went from
+ * sessionizing 200k+ raw rows per widget to selecting from 63k pre-built ones.
  *
- *   1. A gap in TIME splits one person's detections into separate visits.
- *   2. A change in PLACE collapses the run of detections inside one zone into a
- *      single stop.
+ * The two relations this exposes — `stops` and `visits` — keep exactly the
+ * column names and meanings they had before, so every query built on top of
+ * them is untouched.
  *
- * What survives is the ordered path each person walked, with a dwell time and
- * an average sentiment per stop.
- *
- * Exposes two relations:
- *   stops  — one row per (person, visit, zone arrival)
- *   visits — one row per (person, visit)
+ * `visits` is still derived by aggregating `stops` rather than read straight
+ * from the `visit` table. That is deliberate: it preserves the previous
+ * behaviour under a zone filter, where a visit is summarised from the stops
+ * that survive the filter rather than from all of them. Reading `visit`
+ * directly would quietly change every zone-filtered figure.
  */
 export const STOPS = /* sql */ `
-  ${SCOPE},
-  ordered AS (
-    SELECT face_id, detected_at, zone_id, zone_name, phase, emotion, site_tz,
-           LAG(detected_at) OVER (PARTITION BY face_id ORDER BY detected_at) AS prev_seen
-    FROM cohort
-  ),
-  visit_marked AS (
-    SELECT *, SUM(CASE WHEN prev_seen IS NULL
-                         OR detected_at - prev_seen > make_interval(mins => ${SESSION_GAP_MINUTES})
-                       THEN 1 ELSE 0 END)
-              OVER (PARTITION BY face_id ORDER BY detected_at ROWS UNBOUNDED PRECEDING) AS visit_no
-    FROM ordered
-  ),
-  zone_lag AS (
-    -- Partitioned by (face_id, visit_no), NOT face_id alone. Lagging across a
-    -- visit boundary would compare the first zone of today against the last
-    -- zone of yesterday and, if they matched, silently merge two visits'
-    -- stops into one.
-    SELECT *, LAG(zone_id) OVER (PARTITION BY face_id, visit_no ORDER BY detected_at) AS prev_zone
-    FROM visit_marked
-  ),
-  stop_marked AS (
-    SELECT *, SUM(CASE WHEN prev_zone IS DISTINCT FROM zone_id THEN 1 ELSE 0 END)
-              OVER (PARTITION BY face_id, visit_no ORDER BY detected_at ROWS UNBOUNDED PRECEDING) AS stop_no
-    FROM zone_lag
+  WITH person_scoped AS (
+    -- The demographic filters apply to PEOPLE, not detections. Resolution to
+    -- one gender and one age per face already happened in the background job,
+    -- so this is now a lookup instead of a per-request aggregation.
+    SELECT face_id
+    FROM person
+    WHERE ($4::text[] IS NULL OR gender   = ANY($4::text[]))
+      AND ($5::text[] IS NULL OR age_band = ANY($5::text[]))
   ),
   stops AS (
-    SELECT face_id, visit_no, stop_no, zone_id, zone_name, phase, site_tz,
-           min(detected_at) AS entered_at,
-           max(detected_at) AS left_at,
-           -- Dwell is the observed span between first and last detection in the
-           -- zone. It slightly UNDERSTATES reality (a person is present before
-           -- the first frame that recognises them and after the last), and a
-           -- single-detection stop measures zero. Honest and consistent, which
-           -- matters more here than a fudge factor.
-           EXTRACT(EPOCH FROM (max(detected_at) - min(detected_at))) / 60.0 AS dwell_minutes,
-           count(*) AS detections,
-           avg(${HAPPINESS}) FILTER (WHERE emotion IS NOT NULL) AS happiness,
-           count(*) FILTER (WHERE emotion IS NOT NULL) AS checks
-    FROM stop_marked
-    GROUP BY face_id, visit_no, stop_no, zone_id, zone_name, phase, site_tz
+    SELECT vs.face_id, vs.visit_no, vs.stop_no, vs.zone_id,
+           z.name AS zone_name, z.phase, l.timezone AS site_tz,
+           vs.entered_at, vs.left_at, vs.dwell_minutes,
+           vs.detections, vs.happiness, vs.checks
+    FROM visit_stop vs
+    JOIN person_scoped ps ON ps.face_id     = vs.face_id
+    JOIN zone          z  ON z.zone_id      = vs.zone_id
+    JOIN location      l  ON l.location_id  = z.location_id
+    -- OVERLAP, not containment. Someone already in the building when the range
+    -- begins was previously counted, because the old query filtered raw
+    -- detections and simply clipped their visit at the boundary. Matching on
+    -- entered_at alone would silently drop every visit in progress at the range
+    -- start -- worth ~50 visitors on a 30-day window, which reads as data loss.
+    WHERE vs.entered_at <  $2::timestamptz
+      AND vs.left_at    >= $1::timestamptz
+      AND ($3::int[] IS NULL OR vs.zone_id = ANY($3::int[]))
   ),
   visits AS (
-    SELECT face_id, visit_no, site_tz,
+    SELECT face_id, visit_no, min(site_tz) AS site_tz,
            min(entered_at) AS started_at,
            max(left_at)    AS ended_at,
            EXTRACT(EPOCH FROM (max(left_at) - min(entered_at))) / 60.0 AS total_minutes,
-           count(*)        AS stop_count,
+           count(*)                AS stop_count,
            count(DISTINCT zone_id) AS zone_count,
            bool_or(phase IN ('service', 'activity')) AS reached_service,
            -- Weighted by sample count so a one-reading stop cannot swing a
@@ -74,6 +62,6 @@ export const STOPS = /* sql */ `
            sum(happiness * checks) / NULLIF(sum(checks), 0) AS happiness,
            sum(checks) AS checks
     FROM stops
-    GROUP BY face_id, visit_no, site_tz
+    GROUP BY face_id, visit_no
   )
 `;

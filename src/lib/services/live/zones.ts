@@ -8,7 +8,8 @@ import type {
   ZonesTimeseriesResponse,
 } from "@/types";
 import type { ParsedVisitorsQuery } from "../params";
-import { HAPPINESS, SCOPE, localBucket, num, scopeParams, truncUnit } from "./scope";
+import { localBucket, num, scopeParams, truncUnit } from "./scope";
+import { STOPS } from "./stops";
 
 /**
  * Zone analytics from real pulses.
@@ -26,29 +27,35 @@ import { HAPPINESS, SCOPE, localBucket, num, scopeParams, truncUnit } from "./sc
  */
 export async function getZones(q: ParsedVisitorsQuery): Promise<ZonesResponse> {
   const rows = await query<Record<string, string>>(
-    `${SCOPE},
+    // Counts people, so it reads the pre-sessionized stops rather than the
+    // hourly cells: distinct visitors cannot be summed across hour buckets
+    // without counting anyone who stayed past the hour twice.
+    `${STOPS},
      per_zone_day AS (
-       SELECT zone_id, zone_name, phase, site_code,
-              ${localBucket("day")} AS day,
+       SELECT zone_id, zone_name, phase,
+              ${localBucket("day", "entered_at")} AS day,
               count(DISTINCT face_id) AS visitors
-       FROM cohort
-       GROUP BY zone_id, zone_name, phase, site_code, 5
+       FROM stops
+       GROUP BY zone_id, zone_name, phase, 4
      ),
      zone_sentiment AS (
+       -- sum(score x samples) / sum(samples) reproduces the detection-weighted
+       -- average exactly, because each stop already stores its own mean and the
+       -- number of readings behind it.
        SELECT zone_id,
-              count(*) FILTER (WHERE emotion IS NOT NULL) AS happiness_checks,
-              avg(${HAPPINESS}) FILTER (WHERE emotion IS NOT NULL) AS happiness
-       FROM cohort GROUP BY zone_id
+              sum(checks) AS happiness_checks,
+              sum(happiness * checks) / NULLIF(sum(checks), 0) AS happiness
+       FROM stops GROUP BY zone_id
      ),
      per_zone AS (
-       SELECT d.zone_id, d.zone_name, d.phase, d.site_code,
+       SELECT d.zone_id, d.zone_name, d.phase,
               sum(d.visitors) AS visitors,
               max(s.happiness_checks) AS happiness_checks,
               max(s.happiness) AS happiness
        FROM per_zone_day d JOIN zone_sentiment s USING (zone_id)
-       GROUP BY d.zone_id, d.zone_name, d.phase, d.site_code
+       GROUP BY d.zone_id, d.zone_name, d.phase
      )
-     SELECT zone_id, zone_name, phase, site_code, visitors, happiness_checks,
+     SELECT zone_id, zone_name, phase, visitors, happiness_checks,
             round(coalesce(happiness, 0), 1) AS happiness,
             -- Share of the SUM of per-zone visitor counts, so the values total
             -- 100% across zones — that is what the UI's "% of total" label
@@ -91,10 +98,10 @@ export async function getZonesTimeseries(
   const unit = truncUnit(q.granularity);
 
   const rows = await query<Record<string, string>>(
-    `${SCOPE}
-     SELECT ${localBucket(unit)} AS bucket, zone_id, zone_name,
+    `${STOPS}
+     SELECT ${localBucket(unit, "entered_at")} AS bucket, zone_id, zone_name,
             count(DISTINCT face_id) AS visitors
-     FROM cohort GROUP BY 1, 2, 3 ORDER BY 1`,
+     FROM stops GROUP BY 1, 2, 3 ORDER BY 1`,
     scopeParams(q),
   );
 
@@ -108,11 +115,11 @@ export async function getZonesHappinessTimeseries(
   const unit = truncUnit(q.granularity);
 
   const rows = await query<Record<string, string>>(
-    `${SCOPE}
-     SELECT ${localBucket(unit)} AS bucket, zone_id, zone_name,
-            round(avg(${HAPPINESS}), 1) AS happiness,
-            count(*) AS checks
-     FROM cohort WHERE emotion IS NOT NULL
+    `${STOPS}
+     SELECT ${localBucket(unit, "entered_at")} AS bucket, zone_id, zone_name,
+            round(sum(happiness * checks) / NULLIF(sum(checks), 0), 1) AS happiness,
+            sum(checks) AS checks
+     FROM stops WHERE checks > 0
      GROUP BY 1, 2, 3 ORDER BY 1`,
     scopeParams(q),
   );

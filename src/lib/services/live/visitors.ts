@@ -26,13 +26,13 @@ import type { ParsedVisitorsQuery } from "../params";
 import {
   HAPPINESS,
   SCOPE,
-  SESSION_GAP_MINUTES,
   localBucket,
   num,
   scopeParams,
   truncUnit,
 } from "./scope";
 import { STOPS } from "./stops";
+import { HOURLY } from "./rollup";
 
 /**
  * Visitor analytics, computed from real pulses.
@@ -61,28 +61,17 @@ import { STOPS } from "./stops";
  */
 export async function getVisitorCounts(q: ParsedVisitorsQuery): Promise<VisitorCounts> {
   const row = await queryOne<Record<string, string>>(
-    `${SCOPE},
-     ordered AS (
-       SELECT face_id, zone_id, detected_at,
-              LAG(detected_at) OVER (PARTITION BY face_id ORDER BY detected_at) AS prev_seen,
-              LAG(zone_id)     OVER (PARTITION BY face_id ORDER BY detected_at) AS prev_zone
-       FROM cohort
-     ),
-     marked AS (
-       SELECT face_id,
-              CASE WHEN prev_seen IS NULL
-                     OR detected_at - prev_seen > make_interval(mins => ${SESSION_GAP_MINUTES})
-                   THEN 1 ELSE 0 END AS starts_visit,
-              CASE WHEN prev_zone IS DISTINCT FROM zone_id THEN 1 ELSE 0 END AS enters_zone
-       FROM ordered
-     ),
+    // Reads the pre-sessionized tables: the 30-minute rule was already applied
+    // by the background job, so counting visits is now counting rows. Headcount
+    // is the number of zone arrivals, which is exactly one row per stop.
+    `${STOPS},
      per_person AS (
-       SELECT face_id, sum(starts_visit) AS visits FROM marked GROUP BY face_id
+       SELECT face_id, count(*) AS visits FROM visits GROUP BY face_id
      )
-     SELECT (SELECT count(*) FROM per_person)                  AS total_visitors,
+     SELECT (SELECT count(*) FROM per_person)                   AS total_visitors,
             (SELECT count(*) FROM per_person WHERE visits <= 1) AS new_visitors,
             (SELECT count(*) FROM per_person WHERE visits > 1)  AS repeat_visitors,
-            (SELECT coalesce(sum(enters_zone), 0) FROM marked)  AS total_headcount`,
+            (SELECT count(*) FROM stops)                        AS total_headcount`,
     scopeParams(q),
   );
 
@@ -99,12 +88,12 @@ export async function getGenderDistribution(
   q: ParsedVisitorsQuery,
 ): Promise<GenderDistribution> {
   const rows = await query<Record<string, string>>(
-    `${SCOPE},
-     resolved AS (
-       SELECT face_id, mode() WITHIN GROUP (ORDER BY gender) AS gender
-       FROM cohort WHERE gender IS NOT NULL GROUP BY face_id
-     )
-     SELECT gender, count(*) AS people FROM resolved GROUP BY gender`,
+    // Gender was resolved to one value per face by the background job, so this
+    // is a join rather than a per-request aggregation over every detection.
+    `${STOPS}
+     SELECT p.gender, count(DISTINCT s.face_id) AS people
+     FROM stops s JOIN person p ON p.face_id = s.face_id
+     GROUP BY p.gender`,
     scopeParams(q),
   );
 
@@ -121,15 +110,11 @@ export async function getGenderDistribution(
  */
 export async function getAgeDistribution(q: ParsedVisitorsQuery): Promise<AgeDistribution> {
   const rows = await query<Record<string, string>>(
-    `${SCOPE},
-     resolved AS (
-       SELECT face_id, percentile_cont(0.5) WITHIN GROUP (ORDER BY age)::int AS age
-       FROM cohort GROUP BY face_id
-     )
-     SELECT CASE WHEN age IS NULL THEN 'Unknown'
-                 ELSE (floor(age / 10) * 10)::int::text || 's' END AS band,
-            count(*) AS people
-     FROM resolved GROUP BY band`,
+    // Age band likewise comes pre-resolved from `person`.
+    `${STOPS}
+     SELECT p.age_band AS band, count(DISTINCT s.face_id) AS people
+     FROM stops s JOIN person p ON p.face_id = s.face_id
+     GROUP BY p.age_band`,
     scopeParams(q),
   );
 
@@ -157,21 +142,25 @@ export async function getHappinessTimeseries(
   const [rows, latestDay] = await Promise.all([
     // `samples` comes back alongside each bucket because the summary figures
     // below are meaningless without knowing how much data backs each point.
+    // Emotion sums and counts are additive, so these come from the hourly
+    // aggregate rather than from raw detections. The average is reconstructed
+    // as sum/count — averaging the stored per-hour averages would weight a
+    // quiet hour the same as a busy one.
     query<Record<string, string>>(
-      `${SCOPE}
-       SELECT ${localBucket(unit)} AS bucket,
-              round(avg(${HAPPINESS}), 1) AS value,
-              count(*) AS samples
-       FROM cohort WHERE emotion IS NOT NULL
+      `${HOURLY}
+       SELECT ${localBucket(unit, "bucket")} AS bucket,
+              round(sum(happiness_sum) / NULLIF(sum(happiness_checks), 0), 1) AS value,
+              sum(happiness_checks) AS samples
+       FROM cells WHERE happiness_checks > 0
        GROUP BY 1 ORDER BY 1`,
       params,
     ),
     query<Record<string, string>>(
-      `${SCOPE}
-       SELECT round(avg(${HAPPINESS}), 1) AS value
-       FROM cohort WHERE emotion IS NOT NULL
-       GROUP BY ${localBucket("day")}
-       ORDER BY ${localBucket("day")} DESC
+      `${HOURLY}
+       SELECT round(sum(happiness_sum) / NULLIF(sum(happiness_checks), 0), 1) AS value
+       FROM cells WHERE happiness_checks > 0
+       GROUP BY ${localBucket("day", "bucket")}
+       ORDER BY ${localBucket("day", "bucket")} DESC
        LIMIT 1`,
       params,
     ),
