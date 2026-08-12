@@ -201,6 +201,24 @@ Rows that fail validation are reported individually with a reason and an index;
 the rest of the batch still commits. The endpoint returns `207` in that case, so
 a single malformed reading never costs the other 99.
 
+**Ingestion is idempotent.** A gateway whose request times out cannot know
+whether the batch committed, so its only safe move is to resend — and resending
+has to be a no-op. A detection is uniquely identified by who was seen, by which
+camera, at which instant, so `UNIQUE (face_id, camera_id, detected_at)` plus
+`ON CONFLICT DO NOTHING` makes a replayed batch land as zero new rows rather
+than silently doubling every count on the dashboard.
+
+The response separates the two outcomes, because both are successes and neither
+should alarm a caller:
+
+```json
+{ "accepted": 0, "duplicates": 50, "rejected": [] }
+```
+
+`accepted` counts rows actually written — the statement uses `RETURNING`, so a
+first delivery and a retry are distinguishable instead of both reporting a bland
+success.
+
 ### The read path
 
 Dashboard widgets each call their own endpoint. Route handlers stay thin: check
@@ -705,7 +723,8 @@ db/
 │   ├── 005_zone_phase.sql
 │   ├── 006_rollups.sql   # Derived tables for pre-calculated statistics
 │   ├── 007_refresh_rollups.sql # The background job + retention purge
-│   └── 008_schedule_jobs.sql   # pg_cron registration
+│   ├── 008_schedule_jobs.sql   # pg_cron registration
+│   └── 009_idempotent_ingestion.sql # Natural key, makes retries safe
 ├── seed/
 │   ├── 001_reference.sql # Office layout
 │   └── generate_pulses.py# Visitor movement model
@@ -732,7 +751,7 @@ src/
 │   ├── auth/             # Session, JWT, guards
 │   ├── db/               # Connection pool, ingestion, standalone metrics
 │   ├── export/           # PDF report generation
-│   └── services/live/    # SQL aggregation — all backend logic
+│   └── services/live/    # SQL aggregation — reads the pre-calculated tables
 │       ├── stops.ts      # Reads pre-calculated visits/stops
 │       └── rollup.ts     # Reads the hourly aggregate layer
 ├── types/                # Shared interfaces and constants

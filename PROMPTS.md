@@ -319,3 +319,12 @@ Per the Phase 2 assignment requirements, this file logs the prompts used with AI
 > Repoint the API queries at the pre-calculated tables so the dashboard stops recalculating from raw pulses, and make the Overview page fast too. Keep the business logic and the response shapes exactly as they are.
 
 **Outcome:** The shared `STOPS` fragment kept exposing relations named `stops` and `visits` with identical columns, so 15 of the query functions needed no edit at all; the Overview widgets were converted individually. **Overview went from 4.54 s to 0.47 s concurrent**, and most endpoints now sit near the 165 ms network floor. Two findings came out of verifying rather than assuming: a visitor count that appeared to have regressed turned out to be the rolling 30-day window sliding forward, confirmed by querying three definitions directly and getting the same answer; and footfall rose from 14,422 to 18,739 because the **old** query lagged `zone_id` partitioned by `face_id` alone, so an arrival was missed whenever somebody's last zone yesterday matched their first zone today — footfall had been under-reported by about 23%, and the new figure is the correct one.
+
+---
+
+## 2026-08-11 — Idempotent ingestion
+
+**Prompt:**
+> Make pulse ingestion idempotent so a camera that retries after a timeout cannot double-count its batch. Keep the existing validation and partial-batch behaviour exactly as they are, and verify it by replaying the same batch several times.
+
+**Outcome:** Added `UNIQUE (face_id, camera_id, detected_at)` as the natural key of a detection — one camera cannot see the same face twice at the same instant, so two matching rows are always the same observation submitted twice. Paired it with `ON CONFLICT DO NOTHING` and `RETURNING`, which makes a replayed batch land as zero new rows while still letting the endpoint tell a first delivery from a retry; the response now reports `accepted` and `duplicates` separately, since both are successes. Verified by sending an identical 50-row batch three times: `50 accepted / 0 duplicates`, then `0 / 50`, then `0 / 50`, with the table growing by exactly 50. The `207` partial-batch path was re-checked at the same time and still reports each bad row with its index and reason. Confirmed beforehand that no existing rows violated the key, and removed the test rows afterwards.
