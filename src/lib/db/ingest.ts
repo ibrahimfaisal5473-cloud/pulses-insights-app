@@ -32,7 +32,15 @@ export type IncomingPulse = {
 };
 
 export type IngestResult = {
+  /** Rows newly written. Excludes duplicates, which were already stored. */
   accepted: number;
+  /**
+   * Rows that were already present, matched on (face_id, camera_id,
+   * detected_at). Reported separately from `accepted` so a caller can tell a
+   * successful retry from a first delivery — both are successes, and neither
+   * is an error worth alarming on.
+   */
+  duplicates: number;
   rejected: { index: number; reason: string }[];
 };
 
@@ -54,7 +62,7 @@ type ValidPulse = {
  */
 export async function ingestPulses(batch: IncomingPulse[]): Promise<IngestResult> {
   const rejected: IngestResult["rejected"] = [];
-  if (batch.length === 0) return { accepted: 0, rejected };
+  if (batch.length === 0) return { accepted: 0, duplicates: 0, rejected };
 
   // Resolve every camera code in ONE query rather than one lookup per pulse.
   // This is the per-batch equivalent of a foreign key check, done once.
@@ -107,7 +115,7 @@ export async function ingestPulses(batch: IncomingPulse[]): Promise<IngestResult
     valid.push({ cameraId, faceId: p.face_id, detectedAt, age, gender, emotion });
   });
 
-  if (valid.length === 0) return { accepted: 0, rejected };
+  if (valid.length === 0) return { accepted: 0, duplicates: 0, rejected };
 
   // One multi-row INSERT: a single statement, a single round trip, a single
   // transaction. The placeholders are generated (structure), the values are
@@ -129,11 +137,26 @@ export async function ingestPulses(batch: IncomingPulse[]): Promise<IngestResult
     p.emotion,
   ]);
 
-  await query(
+  // ON CONFLICT DO NOTHING against the natural key (face_id, camera_id,
+  // detected_at) makes a retried batch idempotent rather than duplicating it.
+  // A gateway that times out cannot know whether its batch committed, so its
+  // only safe move is to resend — and resending must be a no-op, not silent
+  // inflation of every count on the dashboard.
+  //
+  // RETURNING emits one row per row actually written, so counting them
+  // distinguishes a first delivery from a retry. Without it the statement
+  // reports success either way and the difference is invisible.
+  const inserted = await query<{ ok: number }>(
     `INSERT INTO pulse (camera_id, face_id, detected_at, age, gender, emotion)
-     VALUES ${placeholders}`,
+     VALUES ${placeholders}
+     ON CONFLICT (face_id, camera_id, detected_at) DO NOTHING
+     RETURNING 1 AS ok`,
     params,
   );
 
-  return { accepted: valid.length, rejected };
+  return {
+    accepted: inserted.length,
+    duplicates: valid.length - inserted.length,
+    rejected,
+  };
 }
